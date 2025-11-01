@@ -33,6 +33,7 @@
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            display: block;
         }
 
         #loginScreen h1 {
@@ -289,6 +290,7 @@
         let gameRunning = false;
         let score = 0;
         let gameLoop;
+        let isAuthReady = false;
 
         // Variables del juego
         const canvas = document.getElementById('gameCanvas');
@@ -315,34 +317,45 @@
 
         // Detectar estado de autenticación
         onAuthStateChanged(auth, async (user) => {
+            console.log("Auth state changed:", user ? "Usuario encontrado" : "No hay usuario");
+            
             if (user) {
                 currentUser = user;
+                document.getElementById('loading').classList.remove('hidden');
+                
                 try {
                     // Obtener el nombre de usuario desde Firestore
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         currentUsername = userDoc.data().username;
+                        console.log("Username cargado:", currentUsername);
                     } else {
                         // Si no existe el documento, usar el email como username temporalmente
                         currentUsername = user.email.split('@')[0];
+                        console.log("Creando documento de usuario...");
                         // Crear el documento de usuario
                         await setDoc(doc(db, "users", user.uid), {
                             username: currentUsername,
                             createdAt: new Date()
                         });
                     }
+                    document.getElementById('loading').classList.add('hidden');
                     showGameScreen();
                 } catch (error) {
                     console.error("Error obteniendo usuario:", error);
                     // Si hay error, usar el email como username y continuar
                     currentUsername = user.email.split('@')[0];
+                    document.getElementById('loading').classList.add('hidden');
                     showGameScreen();
                 }
             } else {
                 currentUser = null;
                 currentUsername = null;
+                console.log("Mostrando pantalla de login");
                 showLoginScreen();
             }
+            
+            isAuthReady = true;
         });
 
         // Funciones de autenticación
@@ -439,23 +452,25 @@
 
         // Pantallas
         function showLoginScreen() {
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('gameScreen').classList.add('hidden');
-            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('loading').classList.add('hidden');
         }
 
         function showGameScreen() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('gameScreen').classList.remove('hidden');
-            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('loading').classList.add('hidden');
             document.getElementById('playerName').textContent = currentUsername;
             drawGame();
         }
 
         function showGameOverScreen() {
             stopGame();
-            document.getElementById('gameScreen').classList.add('hidden');
-            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'block';
             document.getElementById('finalScore').textContent = score;
             saveScore();
             loadRanking();
