@@ -317,10 +317,25 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                // Obtener el nombre de usuario desde Firestore
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    currentUsername = userDoc.data().username;
+                try {
+                    // Obtener el nombre de usuario desde Firestore
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        currentUsername = userDoc.data().username;
+                    } else {
+                        // Si no existe el documento, usar el email como username temporalmente
+                        currentUsername = user.email.split('@')[0];
+                        // Crear el documento de usuario
+                        await setDoc(doc(db, "users", user.uid), {
+                            username: currentUsername,
+                            createdAt: new Date()
+                        });
+                    }
+                    showGameScreen();
+                } catch (error) {
+                    console.error("Error obteniendo usuario:", error);
+                    // Si hay error, usar el email como username y continuar
+                    currentUsername = user.email.split('@')[0];
                     showGameScreen();
                 }
             } else {
@@ -351,18 +366,18 @@
                 return;
             }
 
-            // Verificar si el nombre de usuario ya existe
-            const usernameQuery = query(collection(db, "users"), where("username", "==", username));
-            const usernameSnapshot = await getDocs(usernameQuery);
-            
-            if (!usernameSnapshot.empty) {
-                errorDiv.textContent = 'Este nombre de usuario ya está en uso';
-                return;
-            }
-
             try {
+                // Verificar si el nombre de usuario ya existe
+                const usernameQuery = query(collection(db, "users"), where("username", "==", username));
+                const usernameSnapshot = await getDocs(usernameQuery);
+                
+                if (!usernameSnapshot.empty) {
+                    errorDiv.textContent = 'Este nombre de usuario ya está en uso';
+                    return;
+                }
+
                 // Crear cuenta con un email ficticio basado en el username
-                const email = `${username.toLowerCase()}@nochoquesapp.com`;
+                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@nochoquesapp.com`;
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 
                 // Guardar el nombre de usuario en Firestore
@@ -373,6 +388,7 @@
                 
                 errorDiv.textContent = '';
             } catch (error) {
+                console.error('Error completo:', error);
                 errorDiv.textContent = 'Error: ' + getErrorMessage(error.code);
             }
         };
@@ -387,22 +403,16 @@
                 return;
             }
 
-            try {
-                // Buscar el usuario por nombre de usuario
-                const usernameQuery = query(collection(db, "users"), where("username", "==", username));
-                const usernameSnapshot = await getDocs(usernameQuery);
-                
-                if (usernameSnapshot.empty) {
-                    errorDiv.textContent = 'Usuario no encontrado';
-                    return;
-                }
+            errorDiv.textContent = 'Iniciando sesión...';
 
-                // Obtener el email asociado (el ficticio que creamos)
-                const email = `${username.toLowerCase()}@nochoquesapp.com`;
+            try {
+                // Construir el email basado en el username
+                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@nochoquesapp.com`;
                 await signInWithEmailAndPassword(auth, email, password);
                 errorDiv.textContent = '';
             } catch (error) {
-                errorDiv.textContent = 'Error: Contraseña incorrecta';
+                console.error('Error login:', error);
+                errorDiv.textContent = 'Error: Usuario o contraseña incorrectos';
             }
         };
 
