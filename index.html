@@ -428,13 +428,6 @@
                     <div class="game-desc">Salta y esquiva obstáculos</div>
                     <div class="game-highscore" id="platformer-highscore">RECORD: 0</div>
                 </div>
-
-                <div class="game-card" data-game="sonic">
-                    <div class="game-icon">🦔</div>
-                    <div class="game-title">SONIC</div>
-                    <div class="game-desc">Corre, salta, rueda y recoge anillos</div>
-                    <div class="game-highscore" id="sonic-highscore">RECORD: 0</div>
-                </div>
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -456,12 +449,6 @@
                 <button class="btn btn-secondary" id="startGameBtn">START</button>
                 <button class="btn btn-primary" id="menuBtn">MENU</button>
             </div>
-            <div id="mobileControls" class="mobile-controls" style="display: none;">
-                <button class="btn" id="leftBtn">◀</button>
-                <button class="btn" id="rightBtn">▶</button>
-                <button class="btn" id="upBtn">▲</button>
-                <button class="btn" id="rollBtn">⭕</button>
-            </div>
         </div>
 
         <div id="gameOverScreen">
@@ -482,7 +469,6 @@
                     <button class="ranking-tab active" data-game="racing">CARRERA</button>
                     <button class="ranking-tab" data-game="aliens">ALIENS</button>
                     <button class="ranking-tab" data-game="platformer">AVENTURA</button>
-                    <button class="ranking-tab" data-game="sonic">SONIC</button>
                 </div>
 
                 <div class="ranking-list" id="rankingList"></div>
@@ -553,7 +539,7 @@
         let gameRunning = false;
         let score = 0;
         let gameLoop;
-        let userHighScores = { racing: 0, aliens: 0, platformer: 0, sonic: 0 };
+        let userHighScores = { racing: 0, aliens: 0, platformer: 0 };
         let characterCustomization = {
             shirtColor: '#ff0000',
             pantsColor: '#0000ff',
@@ -640,655 +626,817 @@
         // Crear fondo pixelado de carretera
         function drawPixelRoad() {
             // Césped
-            for (let i = 0; i < canvas.height; i += 10) {
-                for (let j = 0; j < canvas.width; j += 10) {
-                    ctx.fillStyle = (Math.random() > 0.5) ? '#228B22' : '#006400';
-                    ctx.fillRect(j, i, 10, 10);
+            for (let x = 0; x < 200; x += 20) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    ctx.fillStyle = (x + y) % 40 === 0 ? '#00aa00' : '#008800';
+                    ctx.fillRect(x, y, 20, 20);
                 }
             }
+            for (let x = 600; x < 800; x += 20) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    ctx.fillStyle = (x + y) % 40 === 0 ? '#00aa00' : '#008800';
+                    ctx.fillRect(x, y, 20, 20);
+                }
+            }
+            
             // Carretera
-            ctx.fillStyle = '#808080';
-            ctx.fillRect(0, canvas.height / 2 - 50, canvas.width, 100);
-            // Líneas de carretera
-            ctx.fillStyle = '#FFFF00';
-            for (let k = 0; k < canvas.width; k += 40) {
-                ctx.fillRect(k, canvas.height / 2 - 2, 20, 4);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(200, 0, 400, canvas.height);
+            
+            // Líneas laterales
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(200, 0, 8, canvas.height);
+            ctx.fillRect(592, 0, 8, canvas.height);
+        }
+
+        // Crear fondo pixelado de tierra (aliens)
+        function drawPixelGround() {
+            for (let x = 0; x < canvas.width; x += 20) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    const shade = Math.random() > 0.5 ? '#8b4513' : '#654321';
+                    ctx.fillStyle = shade;
+                    ctx.fillRect(x, y, 20, 20);
+                }
             }
         }
 
-        // Nuevas funciones para el juego Sonic-like (super detallado)
-
-        // Pixel art para Sonic - Frames de animación (running, jumping, rolling)
-        const sonicRunningFrames = [
-            // Frame 1 (standing/running pose 1)
-            [
-                [0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0]
-            ],
-            // Frame 2 (running pose 2) - Variación detallada
-            [
-                [0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0]
-            ],
-            // Añade más frames para animación detallada (4 frames total)
-            // Frame 3
-            [
-                [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0]
-            ],
-            // Frame 4
-            [
-                [0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0]
-            ]
-        ];
-
-        const sonicJumpFrame = [
-            // Frame de salto detallado
-            [0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0],
-            [0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0],
-            [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0],
-            [0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
-            [0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0],
-            [0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],
-            [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0]
-        ];
-
-        const sonicRollFrames = [
-            // Frame 1 de rodar (bola detallada)
-            [0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,0],
-            [0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,1,1,1,1,0,0],
-            [0,0,0,1,1,1,1,1,1,1,1,0,0,0]
-        ],
-            // Frame 2 (rotación)
-            [
-                [0,0,1,1,1,1,1,1,1,1,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,1,1,1,1,1,1,1,1,0,0]
-            ]
-        ];
-
-        // Función para dibujar Sonic con animación detallada
-        function drawPixelSonic(x, y, state, frame, size = 32) {
-            let pixels;
-            if (state === 'running') {
-                pixels = sonicRunningFrames[frame % sonicRunningFrames.length];
-            } else if (state === 'jumping') {
-                pixels = sonicJumpFrame;
-            } else if (state === 'rolling') {
-                pixels = sonicRollFrames[frame % sonicRollFrames.length];
-            } else {
-                pixels = sonicRunningFrames[0]; // Idle
-            }
-
-            const pixelSize = size / pixels.length;
-            pixels.forEach((row, i) => {
-                row.forEach((pixel, j) => {
-                    if (pixel === 1) {
-                        ctx.fillStyle = '#0000FF'; // Azul de Sonic
-                        ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-                        // Detalles: ojos, espinas, etc.
-                        if (i < 4 && j > 4 && j < 10) { // Espinas
-                            ctx.fillStyle = '#0000AA';
-                            ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-                        }
-                        if (i === 2 && j === 6) { // Ojo
-                            ctx.fillStyle = '#FFFFFF';
-                            ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-                        }
-                    }
-                });
-            });
-        }
-
-        // Pixel art para anillo (detallado)
-        function drawPixelRing(x, y, size = 20) {
-            const pixels = [
-                [0,0,1,1,1,1,0,0],
-                [0,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1],
-                [1,1,1,0,0,1,1,1],
-                [1,1,1,0,0,1,1,1],
-                [1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,0],
-                [0,0,1,1,1,1,0,0]
-            ];
-
-            const pixelSize = size / 8;
-            pixels.forEach((row, i) => {
-                row.forEach((pixel, j) => {
-                    if (pixel === 1) {
-                        ctx.fillStyle = '#FFD700'; // Oro
-                        ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-                        // Brillo
-                        if (i < 2 || j < 2) {
-                            ctx.fillStyle = '#FFFF00';
-                            ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize / 2, pixelSize / 2);
-                        }
-                    }
-                });
-            });
-        }
-
-        // Pixel art para enemigo (badnik simple, como Motobug)
-        function drawPixelEnemy(x, y, size = 32) {
-            const pixels = [
-                [0,0,0,1,1,1,1,0,0,0],
-                [0,0,1,1,1,1,1,1,0,0],
-                [0,1,1,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,1,1,0],
-                [0,0,1,1,1,1,1,1,0,0],
-                [0,0,0,1,1,1,1,0,0,0],
-                [0,0,1,1,0,0,1,1,0,0]
-            ];
-
-            const pixelSize = size / 10;
-            pixels.forEach((row, i) => {
-                row.forEach((pixel, j) => {
-                    if (pixel === 1) {
-                        ctx.fillStyle = '#FF0000'; // Rojo
-                        ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-                        // Detalles: ruedas
-                        if (i === 9) {
-                            ctx.fillStyle = '#000000';
-                            ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-                        }
-                    }
-                });
-            });
-        }
-
-        // Fondo detallado para Sonic (Green Hill-like con parallax)
-        let bgOffset = 0;
-        function drawSonicBackground() {
+        // Crear fondo pixelado de cielo (platformer)
+        function drawPixelSky(cameraX) {
             // Cielo
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
-
-            // Montañas lejanas (parallax lento)
-            ctx.fillStyle = '#228B22';
-            for (let i = 0; i < canvas.width / 100; i++) {
-                ctx.beginPath();
-                ctx.moveTo((i * 100) - bgOffset / 4, canvas.height / 2);
-                ctx.lineTo((i * 100 + 50) - bgOffset / 4, canvas.height / 4);
-                ctx.lineTo((i * 100 + 100) - bgOffset / 4, canvas.height / 2);
-                ctx.fill();
-            }
-
-            // Suelo con checker pattern (detallado)
-            ctx.fillStyle = '#8B4513';
-            for (let y = canvas.height / 2; y < canvas.height; y += 20) {
-                for (let x = 0; x < canvas.width; x += 20) {
-                    ctx.fillStyle = ((x + y + bgOffset) % 40 === 0) ? '#8B4513' : '#A0522D';
-                    ctx.fillRect(x - bgOffset % 20, y, 20, 20);
-                }
-            }
-
-            // Palmas o árboles (detallado)
-            ctx.fillStyle = '#006400';
-            for (let t = 0; t < canvas.width / 200; t++) {
-                // Tronco
-                ctx.fillRect((t * 200) - bgOffset / 2, canvas.height / 2 + 50, 20, 100);
-                // Hojas
-                ctx.beginPath();
-                ctx.arc((t * 200 + 10) - bgOffset / 2, canvas.height / 2 + 50, 30, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // Variables para Sonic game (detallado con física, colisiones, generación procedural)
-        let player = { x: 100, y: 400, vx: 0, vy: 0, acc: 0.8, maxSpeed: 8, friction: 0.92, jump: -18, gravity: 0.9, isRolling: false, isJumping: false, animationFrame: 0, direction: 1, rings: 0 };
-        let keys = {};
-        let platforms = [];
-        let rings = [];
-        let enemies = [];
-        let cameraX = 0;
-        let levelLength = 0;
-        let isOnGround = true;
-
-        // Inicializar Sonic game
-        function initSonic() {
-            player.x = 100;
-            player.y = canvas.height - 100;
-            player.vx = 0;
-            player.vy = 0;
-            player.isRolling = false;
-            player.isJumping = false;
-            player.animationFrame = 0;
-            player.rings = 0;
-            player.direction = 1;
-            score = 0;
-            bgOffset = 0;
-            cameraX = 0;
-            levelLength = 0;
-            platforms = [{ x: 0, y: canvas.height - 50, w: canvas.width * 10, h: 50 }]; // Suelo inicial
-            rings = [];
-            enemies = [];
-            generateLevel();
-            document.getElementById('timerDisplay').style.display = 'none';
-            document.getElementById('mobileControls').style.display = 'flex';
-            setupControls();
-        }
-
-        // Generación procedural de nivel (detallado: plataformas, rings, enemies)
-        function generateLevel() {
-            for (let i = levelLength; i < levelLength + 2000; i += 200) {
-                // Plataformas flotantes aleatorias
-                if (Math.random() > 0.5) {
-                    platforms.push({ x: i + Math.random() * 100, y: canvas.height - 150 - Math.random() * 100, w: 100 + Math.random() * 200, h: 20 });
-                }
-                // Rings
-                for (let r = 0; r < 5; r++) {
-                    rings.push({ x: i + r * 20, y: canvas.height - 100 - Math.sin(r) * 20, collected: false });
-                }
-                // Enemigos
-                if (Math.random() > 0.7) {
-                    enemies.push({ x: i + 100, y: canvas.height - 82, vx: -2 + Math.random() * -1, size: 32, alive: true });
-                }
-            }
-            levelLength += 2000;
-        }
-
-        // Actualizar Sonic (física detallada con momentum, colisiones)
-        function updateSonic() {
-            player.animationFrame += 0.2;
-
-            // Input
-            if (keys['ArrowLeft']) {
-                player.vx -= player.acc;
-                player.direction = -1;
-            }
-            if (keys['ArrowRight']) {
-                player.vx += player.acc;
-                player.direction = 1;
-            }
-            if (keys['ArrowUp'] && isOnGround) {
-                player.vy = player.jump;
-                player.isJumping = true;
-                isOnGround = false;
-            }
-            if (keys['ArrowDown']) {
-                player.isRolling = true;
-            } else {
-                player.isRolling = false;
-            }
-
-            // Física
-            player.vx = Math.max(-player.maxSpeed, Math.min(player.maxSpeed, player.vx));
-            if (!keys['ArrowLeft'] && !keys['ArrowRight']) {
-                player.vx *= player.friction;
-            }
-            player.x += player.vx;
-            player.y += player.vy;
-            if (!isOnGround) {
-                player.vy += player.gravity;
-            }
-
-            // Colisiones con plataformas
-            isOnGround = false;
-            platforms.forEach(plat => {
-                if (player.x + 16 > plat.x && player.x < plat.x + plat.w && player.y + 32 > plat.y && player.y + player.vy < plat.y && player.vy >= 0) {
-                    player.y = plat.y - 32;
-                    player.vy = 0;
-                    isOnGround = true;
-                    player.isJumping = false;
-                }
-            });
-
-            // Colisiones con rings (detallado)
-            rings.forEach(ring => {
-                if (!ring.collected && Math.abs(player.x - ring.x) < 20 && Math.abs(player.y - ring.y) < 20) {
-                    ring.collected = true;
-                    score += 10;
-                    player.rings += 1;
-                    updateScore();
-                }
-            });
-
-            // Colisiones con enemigos
-            enemies.forEach(enemy => {
-                if (enemy.alive && Math.abs(player.x - enemy.x) < 20 && Math.abs(player.y - enemy.y) < 20) {
-                    if (player.isRolling || player.vy > 0) {
-                        enemy.alive = false;
-                        score += 50;
-                        player.vy = player.jump / 2; // Rebote
-                    } else {
-                        // Perder rings o game over
-                        if (player.rings > 0) {
-                            player.rings = Math.max(0, player.rings - 10);
-                        } else {
-                            endGame();
-                        }
-                    }
-                }
-                // Movimiento enemigo
-                enemy.x += enemy.vx;
-            });
-
-            // Cámara scrolling (detallado)
-            if (player.x > canvas.width / 2 + cameraX) {
-                cameraX = player.x - canvas.width / 2;
-            }
-            bgOffset += Math.abs(player.vx) / 2;
-
-            // Generar más nivel si necesario
-            if (player.x > levelLength - canvas.width) {
-                generateLevel();
-            }
-
-            // Caída game over
-            if (player.y > canvas.height) {
-                endGame();
-            }
-
-            // Score basado en distancia + rings
-            score += Math.floor(Math.abs(player.vx) / 5);
-            updateScore();
-        }
-
-        // Dibujar Sonic game (detallado)
-        function drawSonic() {
-            drawSonicBackground();
-
-            // Dibujar plataformas
-            ctx.fillStyle = '#556B2F';
-            platforms.forEach(plat => {
-                ctx.fillRect(plat.x - cameraX, plat.y, plat.w, plat.h);
-                // Detalle: textura
-                for (let tx = 0; tx < plat.w; tx += 10) {
-                    ctx.fillStyle = '#6B8E23';
-                    ctx.fillRect(plat.x - cameraX + tx, plat.y, 5, plat.h);
-                }
-            });
-
-            // Dibujar rings
-            rings.forEach(ring => {
-                if (!ring.collected) {
-                    drawPixelRing(ring.x - cameraX, ring.y);
-                }
-            });
-
-            // Dibujar enemigos
-            enemies.forEach(enemy => {
-                if (enemy.alive) {
-                    drawPixelEnemy(enemy.x - cameraX, enemy.y);
-                }
-            });
-
-            // Dibujar player
-            let state = 'running';
-            if (player.isJumping || !isOnGround) state = 'jumping';
-            if (player.isRolling) state = 'rolling';
-            drawPixelSonic(player.x - cameraX, player.y, state, Math.floor(player.animationFrame));
-
-            // HUD rings
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = '20px Courier New';
-            ctx.fillText(`RINGS: ${player.rings}`, 20, 50);
-        }
-
-        // Configurar controles (teclado y mobile buttons)
-        function setupControls() {
-            window.addEventListener('keydown', e => keys[e.key] = true);
-            window.addEventListener('keyup', e => keys[e.key] = false);
-
-            const leftBtn = document.getElementById('leftBtn');
-            const rightBtn = document.getElementById('rightBtn');
-            const upBtn = document.getElementById('upBtn');
-            const rollBtn = document.getElementById('rollBtn');
-
-            leftBtn.addEventListener('touchstart', () => keys['ArrowLeft'] = true);
-            leftBtn.addEventListener('touchend', () => keys['ArrowLeft'] = false);
-            rightBtn.addEventListener('touchstart', () => keys['ArrowRight'] = true);
-            rightBtn.addEventListener('touchend', () => keys['ArrowRight'] = false);
-            upBtn.addEventListener('touchstart', () => keys['ArrowUp'] = true);
-            upBtn.addEventListener('touchend', () => keys['ArrowUp'] = false);
-            rollBtn.addEventListener('touchstart', () => keys['ArrowDown'] = true);
-            rollBtn.addEventListener('touchend', () => keys['ArrowDown'] = false);
-        }
-
-        // Funciones generales (asumiendo el resto del código original, agregando handles para sonic)
-
-        function selectGame(game) {
-            currentGame = game;
-            showScreen('gameScreen');
-            document.getElementById('gameTitle').innerText = game.toUpperCase();
-            document.getElementById('playerName').innerText = currentUsername;
-            document.getElementById('startGameBtn').style.display = 'block';
-            if (game === 'sonic') {
-                document.getElementById('mobileControls').style.display = 'flex';
-            } else {
-                document.getElementById('mobileControls').style.display = 'none';
-            }
-        }
-
-        function startGame() {
-            if (gameRunning) return;
-            gameRunning = true;
-            score = 0;
-            updateScore();
-            document.getElementById('startGameBtn').style.display = 'none';
-            if (currentGame === 'sonic') {
-                initSonic();
-            } // Añade init para otros juegos si es necesario
-            gameLoop = requestAnimationFrame(gameUpdate);
-        }
-
-        function gameUpdate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (currentGame === 'sonic') {
-                updateSonic();
-                drawSonic();
-            } // Añade updates para otros juegos
-            if (gameRunning) {
-                requestAnimationFrame(gameUpdate);
-            }
-        }
-
-        function updateScore() {
-            document.getElementById('score').innerText = score;
-        }
-
-        function endGame() {
-            gameRunning = false;
-            cancelAnimationFrame(gameLoop);
-            showScreen('gameOverScreen');
-            document.getElementById('finalScore').innerText = score;
-            // Update highscore, etc. (asumir lógica original)
-            if (score > userHighScores[currentGame]) {
-                userHighScores[currentGame] = score;
-                document.getElementById('highScoreMessage').innerText = 'NUEVO RECORD!';
-                // Update Firebase
-                updateDoc(doc(db, 'users', currentUser.uid), {
-                    [`highScores.${currentGame}`]: score
-                });
-            } else {
-                document.getElementById('highScoreMessage').innerText = '';
-            }
-            updateMenuHighScores();
-        }
-
-        function playAgain() {
-            showScreen('gameScreen');
-            startGame();
-        }
-
-        function backToMenuFromGameOver() {
-            backToMenu();
-        }
-
-        function backToMenu() {
-            if (gameRunning) {
-                gameRunning = false;
-                cancelAnimationFrame(gameLoop);
-            }
-            showScreen('menuScreen');
-            document.getElementById('mobileControls').style.display = 'none';
-            updateMenuHighScores();
-        }
-
-        function updateMenuHighScores() {
-            document.getElementById('racing-highscore').innerText = `RECORD: ${userHighScores.racing}`;
-            document.getElementById('aliens-highscore').innerText = `RECORD: ${userHighScores.aliens}`;
-            document.getElementById('platformer-highscore').innerText = `RECORD: ${userHighScores.platformer}`;
-            document.getElementById('sonic-highscore').innerText = `RECORD: ${userHighScores.sonic}`;
-        }
-
-        // Asumir el resto de funciones como login, register, rankings, etc. permanecen iguales, agregando 'sonic' donde sea necesario (e.g., en switchRanking, getRankings)
-
-        function switchRanking(game) {
-            const tabs = document.querySelectorAll('.ranking-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            document.querySelector(`.ranking-tab[data-game="${game}"]`).classList.add('active');
-            currentGame = game; // Para rankings
-            getRankings(game);
-        }
-
-        async function getRankings(game) {
-            const q = query(collection(db, 'users'), orderBy(`highScores.${game}`, 'desc'), limit(10));
-            const querySnapshot = await getDocs(q);
-            const rankingList = document.getElementById('rankingList');
-            rankingList.innerHTML = '';
-            let pos = 1;
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const item = document.createElement('div');
-                item.classList.add('ranking-item');
-                if (pos === 1) item.classList.add('top-1');
-                if (pos === 2) item.classList.add('top-2');
-                if (pos === 3) item.classList.add('top-3');
-                item.innerHTML = `
-                    <span class="rank-pos">${pos}</span>
-                    <span class="rank-name">${data.username}</span>
-                    <span class="rank-score">${data.highScores[game] || 0}</span>
-                `;
-                rankingList.appendChild(item);
-                pos++;
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#5080ff');
+            gradient.addColorStop(1, '#80b0ff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Nubes pixeladas
+            const clouds = [100, 300, 500, 700, 900, 1200, 1500];
+            clouds.forEach(cloudX => {
+                const x = (cloudX - cameraX * 0.3) % (canvas.width + 200);
+                drawPixelCloud(x, 50 + Math.sin(cloudX) * 30);
             });
         }
 
-        // Inicialización (onAuthStateChanged, etc.) - asumiendo código original completo
+        function drawPixelCloud(x, y) {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x, y + 8, 40, 16);
+            ctx.fillRect(x + 8, y, 24, 32);
+            ctx.fillRect(x - 8, y + 12, 16, 12);
+            ctx.fillRect(x + 40, y + 12, 16, 12);
+        }
+
+        // Dibujar personaje pixel art
+        function drawPixelCharacter(x, y, facing = 'right') {
+            const c = characterCustomization;
+            
+            // Zapatos
+            ctx.fillStyle = c.shoesColor;
+            ctx.fillRect(x + 4, y + 28, 6, 4);
+            ctx.fillRect(x + 14, y + 28, 6, 4);
+            
+            // Piernas (pantalón)
+            ctx.fillStyle = c.pantsColor;
+            ctx.fillRect(x + 4, y + 18, 6, 10);
+            ctx.fillRect(x + 14, y + 18, 6, 10);
+            
+            // Cuerpo (camisa)
+            ctx.fillStyle = c.shirtColor;
+            ctx.fillRect(x + 4, y + 10, 16, 8);
+            
+            // Cabeza
+            ctx.fillStyle = '#ffcc99';
+            ctx.fillRect(x + 6, y, 12, 12);
+            
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x + 8, y + 4, 2, 2);
+            ctx.fillRect(x + 14, y + 4, 2, 2);
+            
+            // Gorra
+            if (c.hatStyle === 'cap' || c.hatStyle === 'mario') {
+                ctx.fillStyle = c.hatColor;
+                ctx.fillRect(x + 4, y - 4, 16, 6);
+                ctx.fillRect(x + 2, y, 20, 4);
+            }
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                await getUserData();          // <-- carga username, high‑scores, etc.
-                showScreen('menuScreen');
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        currentUsername = data.username;
+                        userHighScores = data.highScores || { racing: 0, aliens: 0, platformer: 0 };
+                        characterCustomization = data.character || characterCustomization;
+                    } else {
+                        currentUsername = user.email.split('@')[0];
+                        await setDoc(doc(db, "users", user.uid), {
+                            username: currentUsername,
+                            highScores: userHighScores,
+                            character: characterCustomization,
+                            createdAt: new Date()
+                        });
+                    }
+                    showMenuScreen();
+                } catch (error) {
+                    console.error("Error:", error);
+                    currentUsername = user.email.split('@')[0];
+                    showMenuScreen();
+                }
             } else {
-                showScreen('loginScreen');
+                showLoginScreen();
             }
         });
 
-        async function getUserData() {
-            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                currentUsername = data.username;
-                userHighScores = data.highScores || { racing: 0, aliens: 0, platformer: 0, sonic: 0 };
-                characterCustomization = data.character || characterCustomization;
-                document.getElementById('menuUsername').innerText = currentUsername;
-                updateMenuHighScores();
-                updateCharacter();
+        async function register() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'COMPLETA TODOS LOS CAMPOS';
+                return;
             }
+
+            if (username.length < 3) {
+                errorDiv.textContent = 'USUARIO MUY CORTO';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorDiv.textContent = 'CONTRASEÑA MUY CORTA';
+                return;
+            }
+
+            try {
+                const usernameQuery = query(collection(db, "users"), where("username", "==", username));
+                const usernameSnapshot = await getDocs(usernameQuery);
+                
+                if (!usernameSnapshot.empty) {
+                    errorDiv.textContent = 'USUARIO EN USO';
+                    return;
+                }
+
+                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelgames.com`;
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    username: username,
+                    highScores: { racing: 0, aliens: 0, platformer: 0 },
+                    character: characterCustomization,
+                    createdAt: new Date()
+                });
+                
+                errorDiv.textContent = '';
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'ERROR AL CREAR CUENTA';
+            }
+        };
+
+        async function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'COMPLETA TODOS LOS CAMPOS';
+                return;
+            }
+
+            errorDiv.textContent = 'CONECTANDO...';
+
+            try {
+                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelgames.com`;
+                await signInWithEmailAndPassword(auth, email, password);
+                errorDiv.textContent = '';
+            } catch (error) {
+                errorDiv.textContent = 'USUARIO O CLAVE INCORRECTOS';
+            }
+        };
+
+        async function logout() {
+            await signOut(auth);
+            stopGame();
+        };
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('rankingScreen').style.display = 'none';
+            document.getElementById('characterScreen').style.display = 'none';
         }
 
-        // Otras funciones como login, register, logout, showRankingScreen, showCharacterScreen, updateCharacter, saveCharacter - asumiendo permanecen iguales
+        function showMenuScreen() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('rankingScreen').style.display = 'none';
+            document.getElementById('characterScreen').style.display = 'none';
+            document.getElementById('menuUsername').textContent = currentUsername;
+            
+            document.getElementById('racing-highscore').textContent = `RECORD: ${userHighScores.racing}`;
+            document.getElementById('aliens-highscore').textContent = `RECORD: ${userHighScores.aliens}`;
+            document.getElementById('platformer-highscore').textContent = `RECORD: ${userHighScores.platformer}`;
+        }
 
-        function showScreen(screenId) {
-            const screens = ['loginScreen', 'menuScreen', 'gameScreen', 'gameOverScreen', 'rankingScreen', 'characterScreen'];
-            screens.forEach(id => document.getElementById(id).style.display = id === screenId ? 'block' : 'none');
+        function showGameScreen() {
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('playerName').textContent = currentUsername;
+            document.getElementById('score').textContent = '0';
         }
 
         function showRankingScreen() {
-            showScreen('rankingScreen');
-            switchRanking('racing'); // Por defecto
-        }
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('rankingScreen').style.display = 'block';
+            switchRanking('racing');
+        };
 
         function showCharacterScreen() {
-            showScreen('characterScreen');
-            // Cargar personalización actual
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('characterScreen').style.display = 'block';
+            loadCharacterEditor();
+        };
+
+        function backToMenu() {
+            stopGame();
+            showMenuScreen();
+        };
+
+        function backToMenuFromGameOver() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            showMenuScreen();
+        };
+
+        function selectGame(game) {
+            currentGame = game;
+            showGameScreen();
+            
+            const titles = {
+                racing: 'CARRERA LOCA',
+                aliens: 'INVASION ALIEN',
+                platformer: 'AVENTURA RETRO'
+            };
+            
+            document.getElementById('gameTitle').textContent = titles[game];
+            
+            if (game === 'aliens') {
+                document.getElementById('timerDisplay').style.display = 'block';
+            } else {
+                document.getElementById('timerDisplay').style.display = 'none';
+            }
+            
+            drawGameIdle();
+        };
+
+        function drawGameIdle() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '24px "Courier New"';
+            ctx.textAlign = 'center';
+            ctx.fillText('PRESIONA START', canvas.width/2, canvas.height/2);
+        }
+
+        // ========== JUEGO: CARRERA ==========
+        let racingPlayer = { x: 385, y: 500, width: 30, height: 50 };
+        let cars = [];
+        let roadLines = [];
+        let keysPressed = {};
+
+        function initRacingGame() {
+            racingPlayer = { x: 385, y: 500, width: 30, height: 50 };
+            cars = [];
+            roadLines = [];
+            keysPressed = {};
+            for (let i = 0; i < 8; i++) {
+                roadLines.push({ y: i * 100 });
+            }
+        }
+
+        function updateRacingGame() {
+            if (keysPressed['ArrowLeft'] && racingPlayer.x > 210) {
+                racingPlayer.x -= 5;
+            }
+            if (keysPressed['ArrowRight'] && racingPlayer.x < 560) {
+                racingPlayer.x += 5;
+            }
+
+            roadLines.forEach(line => {
+                line.y += 6;
+                if (line.y > canvas.height) line.y = -20;
+            });
+
+            if (Math.random() < 0.02) {
+                const lanes = [250, 350, 450, 550];
+                const lane = lanes[Math.floor(Math.random() * lanes.length)];
+                const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+                cars.push({
+                    x: lane,
+                    y: -60,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            cars = cars.filter(car => {
+                car.y += 6;
+                
+                if (car.y > canvas.height) {
+                    score += 10;
+                    document.getElementById('score').textContent = score;
+                    return false;
+                }
+
+                if (checkCollision(
+                    {x: racingPlayer.x, y: racingPlayer.y, width: 30, height: 50},
+                    {x: car.x, y: car.y, width: 30, height: 50}
+                )) {
+                    endGame();
+                    return false;
+                }
+                return true;
+            });
+
+            drawRacingGame();
+        }
+
+        function drawRacingGame() {
+            drawPixelRoad();
+
+            // Líneas centrales
+            roadLines.forEach(line => {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(350, line.y, 8, 50);
+                ctx.fillRect(450, line.y, 8, 50);
+            });
+
+            cars.forEach(car => {
+                drawPixelCar(car.x, car.y, car.color, false);
+            });
+
+            drawPixelCar(racingPlayer.x, racingPlayer.y, '#00ffff', true);
+        }
+
+        // ========== JUEGO: ALIENS ==========
+        let aliens = [];
+        let timeLeft = 60;
+        let alienTimer;
+        let mousePos = { x: 0, y: 0 };
+
+        function initAliensGame() {
+            aliens = [];
+            timeLeft = 60;
+            mousePos = { x: 0, y: 0 };
+            document.getElementById('timer').textContent = timeLeft;
+            
+            alienTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateAliensGame() {
+            if (Math.random() < 0.03) {
+                const holes = [];
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        holes.push({x: 150 + j * 250, y: 150 + i * 200});
+                    }
+                }
+                
+                const availableHoles = holes.filter(hole => 
+                    !aliens.some(a => a.x === hole.x && a.y === hole.y && !a.isUFO)
+                );
+                
+                if (availableHoles.length > 0 && aliens.filter(a => !a.isUFO).length < 6) {
+                    const hole = availableHoles[Math.floor(Math.random() * availableHoles.length)];
+                    aliens.push({
+                        x: hole.x,
+                        y: hole.y,
+                        timer: Math.random() * 80 + 60,
+                        offsetY: 0,
+                        rising: true
+                    });
+                }
+            }
+
+            if (Math.random() < 0.008) {
+                aliens.push({
+                    x: -80,
+                    y: 50 + Math.random() * 100,
+                    isUFO: true,
+                    speed: 3
+                });
+            }
+
+            aliens = aliens.filter(alien => {
+                if (alien.isUFO) {
+                    alien.x += alien.speed;
+                    return alien.x < canvas.width + 80;
+                }
+                
+                alien.timer--;
+                
+                if (alien.rising) {
+                    alien.offsetY += 1.5;
+                    if (alien.offsetY >= 40) {
+                        alien.rising = false;
+                    }
+                } else if (alien.timer < 15) {
+                    alien.offsetY -= 2;
+                }
+                
+                return alien.timer > 0 && alien.offsetY >= 0;
+            });
+
+            drawAliensGame();
+        }
+
+        function drawAliensGame() {
+            drawPixelGround();
+
+            const holes = [];
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    holes.push({x: 150 + j * 250, y: 150 + i * 200});
+                }
+            }
+            
+            holes.forEach(hole => {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(hole.x - 30, hole.y, 60, 8);
+                ctx.fillRect(hole.x - 25, hole.y - 4, 50, 12);
+            });
+
+            aliens.forEach(alien => {
+                if (alien.isUFO) {
+                    // OVNI pixel art
+                    ctx.fillStyle = '#c0c0c0';
+                    ctx.fillRect(alien.x + 10, alien.y + 10, 40, 8);
+                    ctx.fillRect(alien.x + 5, alien.y + 8, 50, 4);
+                    ctx.fillRect(alien.x + 15, alien.y, 30, 8);
+                    
+                    ctx.fillStyle = '#00ffff';
+                    ctx.fillRect(alien.x + 20, alien.y + 18, 6, 6);
+                    ctx.fillRect(alien.x + 34, alien.y + 18, 6, 6);
+                } else {
+                    drawPixelAlien(alien.x - 24, alien.y - alien.offsetY - 40, 48);
+                }
+            });
+
+            // Cursor de mira
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(mousePos.x - 15, mousePos.y);
+            ctx.lineTo(mousePos.x + 15, mousePos.y);
+            ctx.moveTo(mousePos.x, mousePos.y - 15);
+            ctx.lineTo(mousePos.x, mousePos.y + 15);
+            ctx.stroke();
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            mousePos.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (currentGame !== 'aliens' || !gameRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            
+            aliens = aliens.filter(alien => {
+                if (alien.isUFO) return true;
+                
+                const dist = Math.sqrt((clickX - alien.x) ** 2 + (clickY - (alien.y - alien.offsetY)) ** 2);
+                if (dist < 40) {
+                    score += 10;
+                    document.getElementById('score').textContent = score;
+                    return false;
+                }
+                return true;
+            });
+        });
+
+        // ========== JUEGO: PLATFORMER ==========
+        let platformPlayer = {
+            x: 400,
+            y: 500,
+            width: 24,
+            height: 32,
+            velocityY: 0,
+            jumping: false,
+            gravity: 0.6,
+            jumpForce: -13
+        };
+        let platforms = [];
+        let obstacles = [];
+        let coins = [];
+        let cameraX = 0;
+        let worldX = 0;
+
+        function initPlatformerGame() {
+            platformPlayer = {
+                x: 400,
+                y: 500,
+                width: 24,
+                height: 32,
+                velocityY: 0,
+                jumping: false,
+                gravity: 0.6,
+                jumpForce: -13
+            };
+            
+            platforms = [];
+            obstacles = [];
+            coins = [];
+            cameraX = 0;
+            worldX = 0;
+            
+            // Crear nivel largo
+            for (let i = 0; i < 200; i++) {
+                const x = i * 150;
+                const y = 550 - Math.sin(i * 0.3) * 100;
+                
+                platforms.push({
+                    x: x,
+                    y: y,
+                    width: 200,
+                    height: 20
+                });
+                
+                if (i > 2 && Math.random() > 0.6) {
+                    obstacles.push({
+                        x: x + 100,
+                        y: y - 40,
+                        width: 20,
+                        height: 20
+                    });
+                }
+                
+                if (Math.random() > 0.7) {
+                    coins.push({
+                        x: x + 75,
+                        y: y - 80,
+                        collected: false
+                    });
+                }
+            }
+        }
+
+        function updatePlatformerGame() {
+            const oldX = worldX;
+            
+            if (keysPressed['ArrowRight']) {
+                worldX += 5;
+                score += 1;
+                document.getElementById('score').textContent = Math.floor(score);
+            }
+            if (keysPressed['ArrowLeft'] && worldX > 0) {
+                worldX -= 3;
+            }
+            if ((keysPressed['ArrowUp'] || keysPressed[' ']) && !platformPlayer.jumping) {
+                platformPlayer.velocityY = platformPlayer.jumpForce;
+                platformPlayer.jumping = true;
+            }
+
+            platformPlayer.velocityY += platformPlayer.gravity;
+            platformPlayer.y += platformPlayer.velocityY;
+
+            if (platformPlayer.y > canvas.height) {
+                endGame();
+                return;
+            }
+
+            platforms.forEach(platform => {
+                const relativeX = platform.x - worldX;
+                if (platformPlayer.velocityY >= 0 &&
+                    platformPlayer.x + platformPlayer.width > relativeX &&
+                    platformPlayer.x < relativeX + platform.width &&
+                    platformPlayer.y + platformPlayer.height >= platform.y &&
+                    platformPlayer.y + platformPlayer.height <= platform.y + 20) {
+                    
+                    platformPlayer.y = platform.y - platformPlayer.height;
+                    platformPlayer.velocityY = 0;
+                    platformPlayer.jumping = false;
+                }
+            });
+
+            obstacles.forEach(obstacle => {
+                const relativeX = obstacle.x - worldX;
+                if (platformPlayer.x < relativeX + obstacle.width &&
+                    platformPlayer.x + platformPlayer.width > relativeX &&
+                    platformPlayer.y < obstacle.y + obstacle.height &&
+                    platformPlayer.y + platformPlayer.height > obstacle.y) {
+                    endGame();
+                }
+            });
+
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    const relativeX = coin.x - worldX;
+                    if (platformPlayer.x < relativeX + 16 &&
+                        platformPlayer.x + platformPlayer.width > relativeX &&
+                        platformPlayer.y < coin.y + 16 &&
+                        platformPlayer.y + platformPlayer.height > coin.y) {
+                        coin.collected = true;
+                        score += 50;
+                        document.getElementById('score').textContent = Math.floor(score);
+                    }
+                }
+            });
+
+            drawPlatformerGame();
+        }
+
+        function drawPlatformerGame() {
+            drawPixelSky(worldX);
+
+            ctx.save();
+
+            // Plataformas
+            platforms.forEach(platform => {
+                const x = platform.x - worldX;
+                if (x > -300 && x < canvas.width + 100) {
+                    // Césped
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(x, platform.y - 4, platform.width, 4);
+                    
+                    // Tierra
+                    ctx.fillStyle = '#8b4513';
+                    ctx.fillRect(x, platform.y, platform.width, platform.height);
+                    
+                    // Textura
+                    for (let i = 0; i < platform.width; i += 20) {
+                        for (let j = 0; j < platform.height; j += 20) {
+                            if (Math.random() > 0.7) {
+                                ctx.fillStyle = '#654321';
+                                ctx.fillRect(x + i, platform.y + j, 8, 8);
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Obstáculos
+            obstacles.forEach(obstacle => {
+                const x = obstacle.x - worldX;
+                if (x > -100 && x < canvas.width + 100) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(x, obstacle.y, obstacle.width, obstacle.height);
+                    
+                    ctx.fillStyle = '#aa0000';
+                    ctx.fillRect(x + 2, obstacle.y + 2, obstacle.width - 4, obstacle.height - 4);
+                }
+            });
+
+            // Monedas
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    const x = coin.x - worldX;
+                    if (x > -100 && x < canvas.width + 100) {
+                        ctx.fillStyle = '#ffff00';
+                        ctx.fillRect(x + 4, coin.y, 8, 16);
+                        ctx.fillRect(x, coin.y + 4, 16, 8);
+                        
+                        ctx.fillStyle = '#ffaa00';
+                        ctx.fillRect(x + 6, coin.y + 6, 4, 4);
+                    }
+                }
+            });
+
+            // Personaje siempre en el centro
+            drawPixelCharacter(platformPlayer.x, platformPlayer.y, 'right');
+
+            ctx.restore();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            keysPressed[e.key] = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key] = false;
+        });
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function startGame() {
+            if (gameRunning) return;
+            
+            gameRunning = true;
+            score = 0;
+            document.getElementById('score').textContent = '0';
+            document.getElementById('startGameBtn').style.display = 'none';
+            
+            if (currentGame === 'racing') {
+                initRacingGame();
+                gameLoop = setInterval(updateRacingGame, 1000 / 60);
+            } else if (currentGame === 'aliens') {
+                initAliensGame();
+                gameLoop = setInterval(updateAliensGame, 1000 / 60);
+            } else if (currentGame === 'platformer') {
+                initPlatformerGame();
+                gameLoop = setInterval(updatePlatformerGame, 1000 / 60);
+            }
+        };
+
+        function stopGame() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            clearInterval(alienTimer);
+            keysPressed = {};
+            document.getElementById('startGameBtn').style.display = 'inline-block';
+        }
+
+        async function endGame() {
+            stopGame();
+            
+            const isNewHighScore = score > userHighScores[currentGame];
+            
+            if (isNewHighScore) {
+                userHighScores[currentGame] = score;
+                
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    [`highScores.${currentGame}`]: score
+                });
+                
+                document.getElementById('highScoreMessage').textContent = 'NUEVO RECORD!';
+            } else {
+                document.getElementById('highScoreMessage').textContent = '';
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'block';
+        }
+
+        function playAgain() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            showGameScreen();
+            startGame();
+        };
+
+        async function switchRanking(game) {
+            document.querySelectorAll('.ranking-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            try {
+                const q = query(collection(db, "users"), orderBy(`highScores.${game}`, "desc"), limit(20));
+                const querySnapshot = await getDocs(q);
+                
+                const rankingList = document.getElementById('rankingList');
+                rankingList.innerHTML = '';
+                
+                let position = 1;
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const gameScore = data.highScores?.[game] || 0;
+                    
+                    if (gameScore > 0) {
+                        const item = document.createElement('div');
+                        item.className = `ranking-item ${position <= 3 ? 'top-' + position : ''}`;
+                        item.innerHTML = `
+                            <span class="rank-pos">${position}</span>
+                            <span class="rank-name">${data.username}</span>
+                            <span class="rank-score">${gameScore}</span>
+                        `;
+                        rankingList.appendChild(item);
+                        position++;
+                    }
+                });
+                
+                if (position === 1) {
+                    rankingList.innerHTML = '<p style="text-align: center; color: #00aa00;">NO HAY PUNTUACIONES</p>';
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        };
+
+        function loadCharacterEditor() {
             document.getElementById('shirtColor').value = characterCustomization.shirtColor;
             document.getElementById('pantsColor').value = characterCustomization.pantsColor;
             document.getElementById('shoesColor').value = characterCustomization.shoesColor;
@@ -1297,42 +1445,7 @@
             updateCharacter();
         }
 
-        async function logout() {
-            await signOut(auth);
-            // onAuthStateChanged manejará el cambio a login
-        }
-
         function updateCharacter() {
-            const previewCanvas = document.getElementById('characterPreview');
-            const previewCtx = previewCanvas.getContext('2d');
-            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-
-            // Dibujar personaje simple (ejemplo)
-            // Cuerpo
-            previewCtx.fillStyle = document.getElementById('shirtColor').value;
-            previewCtx.fillRect(80, 100, 40, 60);
-
-            // Pantalones
-            previewCtx.fillStyle = document.getElementById('pantsColor').value;
-            previewCtx.fillRect(80, 160, 40, 60);
-
-            // Zapatos
-            previewCtx.fillStyle = document.getElementById('shoesColor').value;
-            previewCtx.fillRect(80, 220, 40, 20);
-
-            // Gorra
-            const hatStyle = document.getElementById('hatStyle').value;
-            if (hatStyle !== 'none') {
-                previewCtx.fillStyle = document.getElementById('hatColor').value;
-                if (hatStyle === 'cap') {
-                    previewCtx.fillRect(70, 80, 60, 20);
-                } else if (hatStyle === 'mario') {
-                    previewCtx.fillRect(75, 70, 50, 30);
-                }
-            }
-        }
-
-        async function saveCharacter() {
             characterCustomization = {
                 shirtColor: document.getElementById('shirtColor').value,
                 pantsColor: document.getElementById('pantsColor').value,
@@ -1340,149 +1453,62 @@
                 hatStyle: document.getElementById('hatStyle').value,
                 hatColor: document.getElementById('hatColor').value
             };
-            await updateDoc(doc(db, 'users', currentUser.uid), {
-                character: characterCustomization
-            });
-            backToMenu();
-        }
+            
+            const previewCanvas = document.getElementById('characterPreview');
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCtx.imageSmoothingEnabled = false;
+            
+            previewCtx.fillStyle = '#000';
+            previewCtx.fillRect(0, 0, 200, 300);
+            
+            previewCtx.save();
+            previewCtx.translate(76, 120);
+            previewCtx.scale(3, 3);
+            drawPixelCharacter(0, 0, 'right');
+            previewCtx.restore();
+        };
 
-        // -------------------------------------------------
-        //  LOGIN / REGISTER
-        // -------------------------------------------------
-        async function login() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-
-            if (!username || !password) {
-                showError('Completa usuario y contraseña');
-                return;
-            }
-
-            showLoading(true);
-            clearError();
-
+        async function saveCharacter() {
             try {
-                // Firebase Auth usa email, así que convertimos el username → email
-                const email = `${username.toLowerCase()}@minijuegos.com`;
-
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged se encargará de mostrar el menú
-            } catch (err) {
-                let msg = 'Error al iniciar sesión';
-                if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                    msg = 'Usuario o contraseña incorrectos';
-                } else if (err.code === 'auth/invalid-email') {
-                    msg = 'Usuario no válido';
-                }
-                showError(msg);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function register() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-
-            if (!username || !password) {
-                showError('Completa usuario y contraseña');
-                return;
-            }
-            if (password.length < 6) {
-                showError('La contraseña debe tener al menos 6 caracteres');
-                return;
-            }
-
-            showLoading(true);
-            clearError();
-
-            try {
-                const email = `${username.toLowerCase()}@minijuegos.com`;
-
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Guardamos el nombre de usuario y high‑scores iniciales
-                await setDoc(doc(db, 'users', user.uid), {
-                    username: username,
-                    highScores: { racing: 0, aliens: 0, platformer: 0, sonic: 0 },
+                await updateDoc(doc(db, "users", currentUser.uid), {
                     character: characterCustomization
                 });
-
-                // onAuthStateChanged mostrará el menú automáticamente
-            } catch (err) {
-                let msg = 'Error al crear la cuenta';
-                if (err.code === 'auth/email-already-in-use') {
-                    msg = 'Ese usuario ya está registrado';
-                } else if (err.code === 'auth/weak-password') {
-                    msg = 'Contraseña demasiado débil';
-                }
-                showError(msg);
-            } finally {
-                showLoading(false);
+                alert('PERSONAJE GUARDADO!');
+                backToMenu();
+            } catch (error) {
+                console.error("Error:", error);
+                alert('ERROR AL GUARDAR');
             }
-        }
+        };
 
-        // -------------------------------------------------
-        //  HELPERS UI
-        // -------------------------------------------------
-        function showError(msg) {
-            const el = document.getElementById('loginError');
-            el.textContent = msg;
-            el.style.display = 'block';
-        }
-        function clearError() {
-            const el = document.getElementById('loginError');
-            el.textContent = '';
-            el.style.display = 'none';
-        }
-        function showLoading(show) {
-            document.getElementById('loading').classList.toggle('hidden', !show);
-            const btns = document.querySelectorAll('#loginScreen .btn');
-            btns.forEach(b => b.disabled = show);
-        }
-
-        // -------------------------------------------------
-        //  ENTER → LOGIN
-        // -------------------------------------------------
-        document.getElementById('usernameInput').addEventListener('keypress', e => {
-            if (e.key === 'Enter') login();
-        });
-        document.getElementById('passwordInput').addEventListener('keypress', e => {
-            if (e.key === 'Enter') login();
-        });
-
-        // Inicializar event listeners
+        // Inicializar event listeners para botones
         document.addEventListener('DOMContentLoaded', () => {
-            // Login y register
             document.getElementById('loginBtn').addEventListener('click', login);
             document.getElementById('registerBtn').addEventListener('click', register);
-
-            // Selección de juegos
+            
             document.querySelectorAll('.game-card').forEach(card => {
-                card.addEventListener('click', () => selectGame(card.dataset.game));
+                card.addEventListener('click', () => selectGame(card.getAttribute('onclick').match(/\('(.*)'\)/)[1]));
             });
 
-            // Menú buttons
             document.getElementById('rankingBtn').addEventListener('click', showRankingScreen);
             document.getElementById('characterBtn').addEventListener('click', showCharacterScreen);
             document.getElementById('logoutBtn').addEventListener('click', logout);
-
-            // Game screen
+            
             document.getElementById('startGameBtn').addEventListener('click', startGame);
             document.getElementById('menuBtn').addEventListener('click', backToMenu);
-
-            // Game over
+            
             document.getElementById('playAgainBtn').addEventListener('click', playAgain);
             document.getElementById('backToMenuFromOverBtn').addEventListener('click', backToMenuFromGameOver);
-
-            // Ranking tabs
+            
             document.querySelectorAll('.ranking-tab').forEach(tab => {
-                tab.addEventListener('click', () => switchRanking(tab.dataset.game));
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchRanking(tab.getAttribute('onclick').match(/\('(.*)'\)/)[1]);
+                });
             });
+            
             document.getElementById('backFromRankingBtn').addEventListener('click', backToMenu);
-
-            // Character screen
+            
             document.getElementById('shirtColor').addEventListener('change', updateCharacter);
             document.getElementById('pantsColor').addEventListener('change', updateCharacter);
             document.getElementById('shoesColor').addEventListener('change', updateCharacter);
@@ -1490,8 +1516,6 @@
             document.getElementById('hatColor').addEventListener('change', updateCharacter);
             document.getElementById('saveCharacterBtn').addEventListener('click', saveCharacter);
             document.getElementById('backFromCharacterBtn').addEventListener('click', backToMenu);
-
-            updateCharacter(); // Inicial
         });
     </script>
 </body>
