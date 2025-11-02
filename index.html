@@ -393,8 +393,8 @@
                 <input type="password" id="passwordInput" placeholder="CONTRASEÑA">
             </div>
             
-            <button class="btn btn-primary" onclick="login()" style="width: 100%;">INICIAR</button>
-            <button class="btn btn-secondary" onclick="register()" style="width: 100%;">CREAR CUENTA</button>
+            <button class="btn btn-primary" id="loginBtn" style="width: 100%;">INICIAR</button>
+            <button class="btn btn-secondary" id="registerBtn" style="width: 100%;">CREAR CUENTA</button>
             
             <div id="loginError" class="error-msg"></div>
         </div>
@@ -408,28 +408,28 @@
             </div>
 
             <div class="games-grid">
-                <div class="game-card" onclick="selectGame('racing')">
+                <div class="game-card" data-game="racing">
                     <div class="game-icon">🏎️</div>
                     <div class="game-title">CARRERA</div>
                     <div class="game-desc">Esquiva los autos enemigos</div>
                     <div class="game-highscore" id="racing-highscore">RECORD: 0</div>
                 </div>
 
-                <div class="game-card" onclick="selectGame('aliens')">
+                <div class="game-card" data-game="aliens">
                     <div class="game-icon">👾</div>
                     <div class="game-title">ALIENS</div>
                     <div class="game-desc">Aplasta aliens en 60 segundos</div>
                     <div class="game-highscore" id="aliens-highscore">RECORD: 0</div>
                 </div>
 
-                <div class="game-card" onclick="selectGame('platformer')">
+                <div class="game-card" data-game="platformer">
                     <div class="game-icon">🎮</div>
                     <div class="game-title">AVENTURA</div>
                     <div class="game-desc">Salta y esquiva obstáculos</div>
                     <div class="game-highscore" id="platformer-highscore">RECORD: 0</div>
                 </div>
 
-                <div class="game-card" onclick="selectGame('sonic')">
+                <div class="game-card" data-game="sonic">
                     <div class="game-icon">🦔</div>
                     <div class="game-title">SONIC</div>
                     <div class="game-desc">Corre, salta, rueda y recoge anillos</div>
@@ -438,9 +438,9 @@
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="showRankingScreen()">RANKINGS</button>
-                <button class="btn btn-secondary" onclick="showCharacterScreen()">PERSONAJE</button>
-                <button class="btn btn-danger" onclick="logout()">SALIR</button>
+                <button class="btn btn-primary" id="rankingBtn">RANKINGS</button>
+                <button class="btn btn-secondary" id="characterBtn">PERSONAJE</button>
+                <button class="btn btn-danger" id="logoutBtn">SALIR</button>
             </div>
         </div>
 
@@ -453,8 +453,8 @@
             </div>
             <canvas id="gameCanvas" width="800" height="600"></canvas>
             <div class="game-controls">
-                <button class="btn btn-secondary" id="startGameBtn" onclick="startGame()">START</button>
-                <button class="btn btn-primary" onclick="backToMenu()">MENU</button>
+                <button class="btn btn-secondary" id="startGameBtn">START</button>
+                <button class="btn btn-primary" id="menuBtn">MENU</button>
             </div>
             <div id="mobileControls" class="mobile-controls" style="display: none;">
                 <button class="btn" id="leftBtn">◀</button>
@@ -470,24 +470,24 @@
             <div id="finalScore">0</div>
             <div id="highScoreMessage" style="color: #00ff00; font-size: 18px; margin: 10px 0;"></div>
             
-            <button class="btn btn-primary" onclick="playAgain()" style="width: 100%; margin-top: 20px;">REINICIAR</button>
-            <button class="btn btn-secondary" onclick="backToMenuFromGameOver()" style="width: 100%;">MENU</button>
+            <button class="btn btn-primary" id="playAgainBtn" style="width: 100%; margin-top: 20px;">REINICIAR</button>
+            <button class="btn btn-secondary" id="backToMenuFromOverBtn" style="width: 100%;">MENU</button>
         </div>
 
         <div id="rankingScreen">
             <div class="ranking-container">
                 <h2 style="color: #00ff00; margin-bottom: 20px; text-shadow: 2px 2px #003300;">RANKINGS GLOBALES</h2>
                 
-                <div class="ranking-tabs">
-                    <button class="ranking-tab active" onclick="switchRanking('racing')">CARRERA</button>
-                    <button class="ranking-tab" onclick="switchRanking('aliens')">ALIENS</button>
-                    <button class="ranking-tab" onclick="switchRanking('platformer')">AVENTURA</button>
-                    <button class="ranking-tab" onclick="switchRanking('sonic')">SONIC</button>
+                <div class="ranking-tabs" id="rankingTabs">
+                    <button class="ranking-tab active" data-game="racing">CARRERA</button>
+                    <button class="ranking-tab" data-game="aliens">ALIENS</button>
+                    <button class="ranking-tab" data-game="platformer">AVENTURA</button>
+                    <button class="ranking-tab" data-game="sonic">SONIC</button>
                 </div>
 
                 <div class="ranking-list" id="rankingList"></div>
 
-                <button class="btn btn-primary" onclick="backToMenu()" style="width: 100%; margin-top: 20px;">VOLVER</button>
+                <button class="btn btn-primary" id="backFromRankingBtn" style="width: 100%; margin-top: 20px;">VOLVER</button>
             </div>
         </div>
 
@@ -500,29 +500,29 @@
                 <div class="character-options">
                     <div class="option-group">
                         <h3>CAMISA</h3>
-                        <input type="color" class="color-picker" id="shirtColor" value="#ff0000" onchange="updateCharacter()">
+                        <input type="color" class="color-picker" id="shirtColor" value="#ff0000">
                     </div>
                     <div class="option-group">
                         <h3>PANTALON</h3>
-                        <input type="color" class="color-picker" id="pantsColor" value="#0000ff" onchange="updateCharacter()">
+                        <input type="color" class="color-picker" id="pantsColor" value="#0000ff">
                     </div>
                     <div class="option-group">
                         <h3>ZAPATOS</h3>
-                        <input type="color" class="color-picker" id="shoesColor" value="#8b4513" onchange="updateCharacter()">
+                        <input type="color" class="color-picker" id="shoesColor" value="#8b4513">
                     </div>
                     <div class="option-group">
                         <h3>GORRA</h3>
-                        <select id="hatStyle" onchange="updateCharacter()">
+                        <select id="hatStyle">
                             <option value="none">NINGUNA</option>
                             <option value="cap">GORRA</option>
                             <option value="mario">MARIO</option>
                         </select>
-                        <input type="color" class="color-picker" id="hatColor" value="#ff0000" onchange="updateCharacter()">
+                        <input type="color" class="color-picker" id="hatColor" value="#ff0000">
                     </div>
                 </div>
 
-                <button class="btn btn-primary" onclick="saveCharacter()" style="width: 100%; margin-top: 20px;">GUARDAR</button>
-                <button class="btn btn-secondary" onclick="backToMenu()" style="width: 100%;">VOLVER</button>
+                <button class="btn btn-primary" id="saveCharacterBtn" style="width: 100%; margin-top: 20px;">GUARDAR</button>
+                <button class="btn btn-secondary" id="backFromCharacterBtn" style="width: 100%;">VOLVER</button>
             </div>
         </div>
 
@@ -532,7 +532,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, orderBy, limit, getDocs, where, setDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs, setDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDTn_VTTMznvVJIZSjKhGOkvSOQQthNSfk",
@@ -1133,12 +1133,7 @@
 
         function selectGame(game) {
             currentGame = game;
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('menuScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-            document.getElementById('rankingScreen').style.display = 'none';
-            document.getElementById('characterScreen').style.display = 'none';
-            document.getElementById('gameOverScreen').style.display = 'none';
+            showScreen('gameScreen');
             document.getElementById('gameTitle').innerText = game.toUpperCase();
             document.getElementById('playerName').innerText = currentUsername;
             document.getElementById('startGameBtn').style.display = 'block';
@@ -1179,8 +1174,7 @@
         function endGame() {
             gameRunning = false;
             cancelAnimationFrame(gameLoop);
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('gameOverScreen').style.display = 'block';
+            showScreen('gameOverScreen');
             document.getElementById('finalScore').innerText = score;
             // Update highscore, etc. (asumir lógica original)
             if (score > userHighScores[currentGame]) {
@@ -1193,16 +1187,15 @@
             } else {
                 document.getElementById('highScoreMessage').innerText = '';
             }
+            updateMenuHighScores();
         }
 
         function playAgain() {
-            document.getElementById('gameOverScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
+            showScreen('gameScreen');
             startGame();
         }
 
         function backToMenuFromGameOver() {
-            document.getElementById('gameOverScreen').style.display = 'none';
             backToMenu();
         }
 
@@ -1211,19 +1204,24 @@
                 gameRunning = false;
                 cancelAnimationFrame(gameLoop);
             }
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('menuScreen').style.display = 'block';
-            document.getElementById('rankingScreen').style.display = 'none';
-            document.getElementById('characterScreen').style.display = 'none';
+            showScreen('menuScreen');
             document.getElementById('mobileControls').style.display = 'none';
-            // Update highscores in menu
+            updateMenuHighScores();
+        }
+
+        function updateMenuHighScores() {
+            document.getElementById('racing-highscore').innerText = `RECORD: ${userHighScores.racing}`;
+            document.getElementById('aliens-highscore').innerText = `RECORD: ${userHighScores.aliens}`;
+            document.getElementById('platformer-highscore').innerText = `RECORD: ${userHighScores.platformer}`;
             document.getElementById('sonic-highscore').innerText = `RECORD: ${userHighScores.sonic}`;
         }
 
         // Asumir el resto de funciones como login, register, rankings, etc. permanecen iguales, agregando 'sonic' donde sea necesario (e.g., en switchRanking, getRankings)
 
         function switchRanking(game) {
-            // ... (código original)
+            const tabs = document.querySelectorAll('.ranking-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.ranking-tab[data-game="${game}"]`).classList.add('active');
             currentGame = game; // Para rankings
             getRankings(game);
         }
@@ -1253,10 +1251,11 @@
 
         // Inicialización (onAuthStateChanged, etc.) - asumiendo código original completo
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                getUserData();
+                await getUserData();          // <-- carga username, high‑scores, etc.
+                showScreen('menuScreen');
             } else {
                 showScreen('loginScreen');
             }
@@ -1270,11 +1269,7 @@
                 userHighScores = data.highScores || { racing: 0, aliens: 0, platformer: 0, sonic: 0 };
                 characterCustomization = data.character || characterCustomization;
                 document.getElementById('menuUsername').innerText = currentUsername;
-                document.getElementById('racing-highscore').innerText = `RECORD: ${userHighScores.racing}`;
-                document.getElementById('aliens-highscore').innerText = `RECORD: ${userHighScores.aliens}`;
-                document.getElementById('platformer-highscore').innerText = `RECORD: ${userHighScores.platformer}`;
-                document.getElementById('sonic-highscore').innerText = `RECORD: ${userHighScores.sonic}`;
-                showScreen('menuScreen');
+                updateMenuHighScores();
                 updateCharacter();
             }
         }
@@ -1286,7 +1281,218 @@
             screens.forEach(id => document.getElementById(id).style.display = id === screenId ? 'block' : 'none');
         }
 
-        // Añade implementaciones para otros juegos si es necesario, pero como el original está truncado, enfocamos en sonic
+        function showRankingScreen() {
+            showScreen('rankingScreen');
+            switchRanking('racing'); // Por defecto
+        }
+
+        function showCharacterScreen() {
+            showScreen('characterScreen');
+            // Cargar personalización actual
+            document.getElementById('shirtColor').value = characterCustomization.shirtColor;
+            document.getElementById('pantsColor').value = characterCustomization.pantsColor;
+            document.getElementById('shoesColor').value = characterCustomization.shoesColor;
+            document.getElementById('hatStyle').value = characterCustomization.hatStyle;
+            document.getElementById('hatColor').value = characterCustomization.hatColor;
+            updateCharacter();
+        }
+
+        async function logout() {
+            await signOut(auth);
+            // onAuthStateChanged manejará el cambio a login
+        }
+
+        function updateCharacter() {
+            const previewCanvas = document.getElementById('characterPreview');
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            // Dibujar personaje simple (ejemplo)
+            // Cuerpo
+            previewCtx.fillStyle = document.getElementById('shirtColor').value;
+            previewCtx.fillRect(80, 100, 40, 60);
+
+            // Pantalones
+            previewCtx.fillStyle = document.getElementById('pantsColor').value;
+            previewCtx.fillRect(80, 160, 40, 60);
+
+            // Zapatos
+            previewCtx.fillStyle = document.getElementById('shoesColor').value;
+            previewCtx.fillRect(80, 220, 40, 20);
+
+            // Gorra
+            const hatStyle = document.getElementById('hatStyle').value;
+            if (hatStyle !== 'none') {
+                previewCtx.fillStyle = document.getElementById('hatColor').value;
+                if (hatStyle === 'cap') {
+                    previewCtx.fillRect(70, 80, 60, 20);
+                } else if (hatStyle === 'mario') {
+                    previewCtx.fillRect(75, 70, 50, 30);
+                }
+            }
+        }
+
+        async function saveCharacter() {
+            characterCustomization = {
+                shirtColor: document.getElementById('shirtColor').value,
+                pantsColor: document.getElementById('pantsColor').value,
+                shoesColor: document.getElementById('shoesColor').value,
+                hatStyle: document.getElementById('hatStyle').value,
+                hatColor: document.getElementById('hatColor').value
+            };
+            await updateDoc(doc(db, 'users', currentUser.uid), {
+                character: characterCustomization
+            });
+            backToMenu();
+        }
+
+        // -------------------------------------------------
+        //  LOGIN / REGISTER
+        // -------------------------------------------------
+        async function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            if (!username || !password) {
+                showError('Completa usuario y contraseña');
+                return;
+            }
+
+            showLoading(true);
+            clearError();
+
+            try {
+                // Firebase Auth usa email, así que convertimos el username → email
+                const email = `${username.toLowerCase()}@minijuegos.com`;
+
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará de mostrar el menú
+            } catch (err) {
+                let msg = 'Error al iniciar sesión';
+                if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                    msg = 'Usuario o contraseña incorrectos';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = 'Usuario no válido';
+                }
+                showError(msg);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            if (!username || !password) {
+                showError('Completa usuario y contraseña');
+                return;
+            }
+            if (password.length < 6) {
+                showError('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
+            showLoading(true);
+            clearError();
+
+            try {
+                const email = `${username.toLowerCase()}@minijuegos.com`;
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Guardamos el nombre de usuario y high‑scores iniciales
+                await setDoc(doc(db, 'users', user.uid), {
+                    username: username,
+                    highScores: { racing: 0, aliens: 0, platformer: 0, sonic: 0 },
+                    character: characterCustomization
+                });
+
+                // onAuthStateChanged mostrará el menú automáticamente
+            } catch (err) {
+                let msg = 'Error al crear la cuenta';
+                if (err.code === 'auth/email-already-in-use') {
+                    msg = 'Ese usuario ya está registrado';
+                } else if (err.code === 'auth/weak-password') {
+                    msg = 'Contraseña demasiado débil';
+                }
+                showError(msg);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // -------------------------------------------------
+        //  HELPERS UI
+        // -------------------------------------------------
+        function showError(msg) {
+            const el = document.getElementById('loginError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+        function clearError() {
+            const el = document.getElementById('loginError');
+            el.textContent = '';
+            el.style.display = 'none';
+        }
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+            const btns = document.querySelectorAll('#loginScreen .btn');
+            btns.forEach(b => b.disabled = show);
+        }
+
+        // -------------------------------------------------
+        //  ENTER → LOGIN
+        // -------------------------------------------------
+        document.getElementById('usernameInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('passwordInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+
+        // Inicializar event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Login y register
+            document.getElementById('loginBtn').addEventListener('click', login);
+            document.getElementById('registerBtn').addEventListener('click', register);
+
+            // Selección de juegos
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', () => selectGame(card.dataset.game));
+            });
+
+            // Menú buttons
+            document.getElementById('rankingBtn').addEventListener('click', showRankingScreen);
+            document.getElementById('characterBtn').addEventListener('click', showCharacterScreen);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            // Game screen
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('menuBtn').addEventListener('click', backToMenu);
+
+            // Game over
+            document.getElementById('playAgainBtn').addEventListener('click', playAgain);
+            document.getElementById('backToMenuFromOverBtn').addEventListener('click', backToMenuFromGameOver);
+
+            // Ranking tabs
+            document.querySelectorAll('.ranking-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchRanking(tab.dataset.game));
+            });
+            document.getElementById('backFromRankingBtn').addEventListener('click', backToMenu);
+
+            // Character screen
+            document.getElementById('shirtColor').addEventListener('change', updateCharacter);
+            document.getElementById('pantsColor').addEventListener('change', updateCharacter);
+            document.getElementById('shoesColor').addEventListener('change', updateCharacter);
+            document.getElementById('hatStyle').addEventListener('change', updateCharacter);
+            document.getElementById('hatColor').addEventListener('change', updateCharacter);
+            document.getElementById('saveCharacterBtn').addEventListener('click', saveCharacter);
+            document.getElementById('backFromCharacterBtn').addEventListener('click', backToMenu);
+
+            updateCharacter(); // Inicial
+        });
     </script>
 </body>
 </html>
