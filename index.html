@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldBox Online - Mundo Sandbox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pixel World - Mundo Online</title>
     <style>
         * {
             margin: 0;
@@ -12,13 +12,14 @@
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: 'Courier New', monospace;
-            background: #1a1a1a;
+            background: #2c5f2d;
             overflow: hidden;
-            color: #fff;
+            touch-action: none;
         }
 
         #loginScreen {
@@ -27,1780 +28,1973 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(180deg, #87ceeb 0%, #97d07d 50%, #6b8e23 100%);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10000;
+            z-index: 1000;
         }
 
         .login-box {
-            background: rgba(44, 62, 80, 0.95);
-            border: 4px solid #3498db;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
-            min-width: 350px;
+            background: #8b7355;
+            border: 4px solid #654321;
+            padding: 30px;
+            box-shadow: 0 8px 0 #3d2817;
+            max-width: 400px;
+            width: 90%;
         }
 
         .login-box h1 {
-            color: #3498db;
+            color: #fff;
             text-align: center;
             margin-bottom: 10px;
             font-size: 32px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 3px 3px 0 #000;
         }
 
         .login-box p {
+            color: #f4e4c1;
             text-align: center;
-            color: #95a5a6;
-            margin-bottom: 30px;
-        }
-
-        .input-group {
             margin-bottom: 20px;
         }
 
-        .input-group label {
-            display: block;
-            color: #ecf0f1;
-            margin-bottom: 5px;
-            font-size: 14px;
+        .input-group {
+            margin-bottom: 15px;
         }
 
         .input-group input {
             width: 100%;
             padding: 12px;
-            background: rgba(0,0,0,0.3);
-            border: 2px solid #34495e;
-            color: #ecf0f1;
+            border: 3px solid #654321;
+            background: #f4e4c1;
+            color: #000;
             font-size: 16px;
-            border-radius: 5px;
-            transition: border 0.3s;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #3498db;
+            font-family: 'Courier New', monospace;
         }
 
         .btn {
             width: 100%;
             padding: 12px;
-            border: none;
-            border-radius: 5px;
+            border: 3px solid #654321;
+            background: #6b8e23;
+            color: #fff;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
             margin-bottom: 10px;
-            text-transform: uppercase;
             font-family: 'Courier New', monospace;
+            text-transform: uppercase;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
+        .btn:active {
+            transform: translateY(2px);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        .btn-create {
+            background: #8b4513;
         }
 
         .error-msg {
-            color: #e74c3c;
+            color: #ff0000;
             text-align: center;
             margin-top: 10px;
-            font-size: 14px;
+            text-shadow: 1px 1px 0 #000;
         }
 
         #gameContainer {
             display: none;
-            width: 100vw;
-            height: 100vh;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         #gameCanvas {
             display: block;
-            cursor: crosshair;
-            background: #87CEEB;
-        }
-
-        #topBar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: rgba(44, 62, 80, 0.95);
-            border-bottom: 2px solid #3498db;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 1000;
-        }
-
-        #topBar .player-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        #topBar .stat {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(0,0,0,0.3);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        #topBar .stat-icon {
-            font-size: 18px;
-        }
-
-        #toolbar {
-            position: fixed;
-            left: 10px;
-            top: 70px;
-            background: rgba(44, 62, 80, 0.95);
-            border: 2px solid #3498db;
-            border-radius: 10px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            z-index: 1000;
-        }
-
-        .tool-btn {
-            width: 50px;
-            height: 50px;
-            background: rgba(52, 152, 219, 0.3);
-            border: 2px solid #3498db;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            transition: all 0.3s;
-        }
-
-        .tool-btn:hover {
-            background: rgba(52, 152, 219, 0.6);
-            transform: scale(1.1);
-        }
-
-        .tool-btn.active {
-            background: #3498db;
-            box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
-        }
-
-        #buildMenu {
-            position: fixed;
-            right: 10px;
-            top: 70px;
-            background: rgba(44, 62, 80, 0.95);
-            border: 2px solid #3498db;
-            border-radius: 10px;
-            padding: 15px;
-            max-width: 300px;
-            max-height: 80vh;
-            overflow-y: auto;
-            display: none;
-            z-index: 1000;
-        }
-
-        #buildMenu h3 {
-            color: #3498db;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .build-category {
-            margin-bottom: 20px;
-        }
-
-        .build-category h4 {
-            color: #ecf0f1;
-            margin-bottom: 10px;
-            font-size: 14px;
-            border-bottom: 1px solid #34495e;
-            padding-bottom: 5px;
-        }
-
-        .build-items {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .build-item {
-            background: rgba(52, 152, 219, 0.2);
-            border: 2px solid #34495e;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-
-        .build-item:hover {
-            background: rgba(52, 152, 219, 0.4);
-            border-color: #3498db;
-            transform: scale(1.05);
-        }
-
-        .build-item.selected {
-            background: #3498db;
-            border-color: #2ecc71;
-        }
-
-        .build-item .icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .build-item .name {
-            font-size: 10px;
-            color: #ecf0f1;
-        }
-
-        .build-item .cost {
-            font-size: 10px;
-            color: #f39c12;
-            margin-top: 3px;
-        }
-
-        #characterMenu {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(44, 62, 80, 0.98);
-            border: 3px solid #3498db;
-            border-radius: 10px;
-            padding: 30px;
-            display: none;
-            z-index: 2000;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        #characterMenu h2 {
-            color: #3498db;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .character-preview {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 20px;
-            border: 3px solid #3498db;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .customization-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .custom-group {
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #34495e;
-        }
-
-        .custom-group h4 {
-            color: #3498db;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .color-input {
-            width: 100%;
-            height: 40px;
-            cursor: pointer;
-            border: 2px solid #34495e;
-            border-radius: 5px;
-        }
-
-        select {
-            width: 100%;
-            padding: 8px;
-            background: rgba(0,0,0,0.5);
-            color: #ecf0f1;
-            border: 2px solid #34495e;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-        }
-
-        #mobileControls {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
-        }
-
-        .joystick-area {
-            width: 150px;
-            height: 150px;
-            position: relative;
-        }
-
-        .joystick-base {
             width: 100%;
             height: 100%;
-            background: rgba(44, 62, 80, 0.7);
-            border: 3px solid #3498db;
-            border-radius: 50%;
+            background: #6b8e23;
+        }
+
+        #hud {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .hud-info {
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
+            padding: 10px;
+            color: #fff;
+            pointer-events: auto;
+        }
+
+        .health-bar {
+            width: 150px;
+            height: 20px;
+            background: #333;
+            border: 2px solid #000;
+            margin-top: 5px;
             position: relative;
         }
 
-        .joystick-stick {
-            width: 60px;
-            height: 60px;
-            background: #3498db;
-            border: 3px solid #2980b9;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            transition: all 0.1s;
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(to bottom, #ff6b6b, #cc0000);
+            width: 100%;
+            transition: width 0.3s;
         }
 
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .action-btn {
-            width: 70px;
-            height: 70px;
-            background: rgba(44, 62, 80, 0.8);
-            border: 3px solid #3498db;
-            border-radius: 50%;
-            color: white;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .action-btn:active {
-            background: rgba(52, 152, 219, 0.8);
-            transform: scale(0.95);
+        .stats {
+            font-size: 12px;
+            margin-top: 5px;
         }
 
         #chatBox {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 350px;
-            background: rgba(44, 62, 80, 0.95);
-            border: 2px solid #3498db;
-            border-radius: 10px;
+            bottom: 150px;
+            left: 10px;
+            width: 300px;
+            max-height: 200px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #654321;
             padding: 10px;
-            z-index: 1000;
-        }
-
-        #chatMessages {
-            height: 150px;
             overflow-y: auto;
-            margin-bottom: 10px;
+            pointer-events: auto;
+            color: #fff;
             font-size: 12px;
+            display: none;
         }
 
         .chat-message {
             margin-bottom: 5px;
-            padding: 5px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 3px;
+            word-wrap: break-word;
         }
 
-        .chat-message .username {
-            color: #3498db;
+        .chat-player {
+            color: #ffff00;
             font-weight: bold;
         }
 
         #chatInput {
+            position: fixed;
+            bottom: 110px;
+            left: 10px;
+            width: 300px;
+            padding: 8px;
+            background: rgba(139, 115, 85, 0.9);
+            border: 2px solid #654321;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: none;
+        }
+
+        #inventory {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            pointer-events: auto;
+        }
+
+        .inventory-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .inventory-slot.active {
+            border-color: #ffff00;
+            box-shadow: 0 0 10px #ffff00;
+        }
+
+        .inventory-slot canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            color: #fff;
+            font-size: 10px;
+            text-shadow: 1px 1px 0 #000;
+            font-weight: bold;
+        }
+
+        #buildMenu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 115, 85, 0.95);
+            border: 4px solid #654321;
+            padding: 20px;
+            display: none;
+            z-index: 200;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+
+        .build-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .build-item {
+            background: #6b8e23;
+            border: 3px solid #654321;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .build-item:hover {
+            background: #8b7355;
+        }
+
+        .build-item canvas {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+        }
+
+        #characterMenu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 115, 85, 0.95);
+            border: 4px solid #654321;
+            padding: 20px;
+            display: none;
+            z-index: 200;
+            max-width: 400px;
+            pointer-events: auto;
+        }
+
+        .character-preview {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #charPreview {
+            border: 3px solid #654321;
+            background: #6b8e23;
+        }
+
+        .customization-option {
+            margin-bottom: 15px;
+        }
+
+        .customization-option label {
+            color: #fff;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .customization-option input,
+        .customization-option select {
             width: 100%;
             padding: 8px;
-            background: rgba(0,0,0,0.5);
-            border: 2px solid #34495e;
-            color: #ecf0f1;
-            border-radius: 5px;
+            border: 2px solid #654321;
+            background: #f4e4c1;
+            font-family: 'Courier New', monospace;
+        }
+
+        #mobileControls {
+            position: fixed;
+            bottom: 80px;
+            right: 10px;
+            display: none;
+            pointer-events: auto;
+        }
+
+        .joystick {
+            width: 120px;
+            height: 120px;
+            background: rgba(139, 115, 85, 0.5);
+            border: 3px solid #654321;
+            border-radius: 60px;
+            position: relative;
+        }
+
+        .joystick-inner {
+            width: 50px;
+            height: 50px;
+            background: rgba(107, 142, 35, 0.8);
+            border: 3px solid #654321;
+            border-radius: 25px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .action-buttons {
+            position: fixed;
+            bottom: 80px;
+            left: 10px;
+            display: none;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .action-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 115, 85, 0.8);
+            border: 3px solid #654321;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .action-btn:active {
+            background: rgba(107, 142, 35, 0.8);
+        }
+
+        #menuButtons {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            pointer-events: auto;
+        }
+
+        .menu-btn {
+            padding: 10px 15px;
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
+            color: #fff;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
             font-size: 12px;
+        }
+
+        .menu-btn:active {
+            background: rgba(107, 142, 35, 0.9);
+        }
+
+        #playersList {
+            position: fixed;
+            top: 80px;
+            right: 10px;
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
+            padding: 10px;
+            max-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            pointer-events: auto;
+        }
+
+        .player-item {
+            color: #fff;
+            padding: 5px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #654321;
+            cursor: pointer;
+        }
+
+        .player-item:hover {
+            background: rgba(107, 142, 35, 0.5);
         }
 
         #allianceMenu {
             position: fixed;
-            right: 10px;
-            bottom: 20px;
-            background: rgba(44, 62, 80, 0.95);
-            border: 2px solid #3498db;
-            border-radius: 10px;
-            padding: 15px;
-            width: 250px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 115, 85, 0.95);
+            border: 4px solid #654321;
+            padding: 20px;
             display: none;
-            z-index: 1000;
+            z-index: 200;
+            max-width: 400px;
+            pointer-events: auto;
         }
 
-        #allianceMenu h3 {
-            color: #3498db;
-            margin-bottom: 10px;
-            font-size: 16px;
+        .alliance-info {
+            color: #fff;
+            margin-bottom: 15px;
         }
 
-        .alliance-player {
-            background: rgba(0,0,0,0.3);
+        .alliance-members {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .member-item {
+            color: #fff;
             padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
             margin-bottom: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border: 2px solid #654321;
         }
 
-        @media (max-width: 768px) {
-            #mobileControls {
-                display: flex;
-            }
-            
-            #toolbar {
-                flex-direction: row;
-                left: 50%;
-                transform: translateX(-50%);
-                top: auto;
-                bottom: 190px;
-            }
-            
-            #buildMenu {
-                top: 60px;
-                right: 10px;
-                max-width: calc(100vw - 20px);
-            }
-            
-            #chatBox {
-                width: calc(100vw - 40px);
-                bottom: 200px;
-            }
+        #shopMenu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 115, 85, 0.95);
+            border: 4px solid #654321;
+            padding: 20px;
+            display: none;
+            z-index: 200;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .shop-item {
+            background: #6b8e23;
+            border: 3px solid #654321;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .shop-item:hover {
+            background: #8b7355;
+        }
+
+        .shop-price {
+            color: #ffff00;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: #cc0000;
+            border: 2px solid #000;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        #notifications {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+            pointer-events: none;
         }
 
         .notification {
-            position: fixed;
-            top: 60px;
-            right: 20px;
-            background: rgba(46, 204, 113, 0.95);
-            border: 2px solid #27ae60;
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
             padding: 15px 20px;
-            border-radius: 5px;
-            z-index: 3000;
-            animation: slideIn 0.3s ease-out;
+            color: #fff;
+            margin-bottom: 10px;
+            animation: slideDown 0.3s ease;
         }
 
-        @keyframes slideIn {
+        @keyframes slideDown {
             from {
-                transform: translateX(400px);
+                transform: translateY(-100px);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
         }
 
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
+        .loading {
+            color: #fff;
+            text-align: center;
+        }
+
+        h2, h3 {
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            #mobileControls,
+            .action-buttons {
+                display: flex;
             }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
+
+            #inventory {
+                bottom: 150px;
+                flex-wrap: wrap;
+                max-width: 90%;
             }
-        }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
+            .inventory-slot {
+                width: 45px;
+                height: 45px;
+            }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.3);
-        }
+            #chatBox {
+                width: calc(100% - 20px);
+                bottom: 220px;
+            }
 
-        ::-webkit-scrollbar-thumb {
-            background: #3498db;
-            border-radius: 4px;
+            #chatInput {
+                width: calc(100% - 20px);
+                bottom: 180px;
+            }
+
+            #buildMenu,
+            #characterMenu,
+            #allianceMenu,
+            #shopMenu {
+                max-width: 90%;
+                max-height: 70vh;
+            }
         }
     </style>
 </head>
 <body>
     <div id="loginScreen">
         <div class="login-box">
-            <h1>🌍 WORLDBOX ONLINE</h1>
-            <p>Sandbox Multiplayer</p>
+            <h1>🌍 PIXEL WORLD</h1>
+            <p>Mundo Multijugador Online</p>
             
             <div class="input-group">
-                <label>Usuario</label>
-                <input type="text" id="usernameInput" placeholder="Ingresa tu usuario">
+                <input type="text" id="usernameInput" placeholder="NOMBRE DE USUARIO">
             </div>
-            
             <div class="input-group">
-                <label>Contraseña</label>
-                <input type="password" id="passwordInput" placeholder="Ingresa tu contraseña">
+                <input type="password" id="passwordInput" placeholder="CONTRASEÑA">
             </div>
             
-            <button class="btn btn-primary" onclick="login()">Iniciar Sesión</button>
-            <button class="btn btn-secondary" onclick="register()">Crear Cuenta</button>
+            <button class="btn" onclick="login()">ENTRAR AL MUNDO</button>
+            <button class="btn btn-create" onclick="register()">CREAR PERSONAJE</button>
             
-            <div class="error-msg" id="loginError"></div>
+            <div id="loginError" class="error-msg"></div>
+            <div class="loading" id="loginLoading" style="display:none;">Cargando mundo...</div>
         </div>
     </div>
 
     <div id="gameContainer">
-        <div id="topBar">
-            <div class="player-info">
-                <div class="stat">
-                    <span class="stat-icon">👤</span>
-                    <span id="playerName">Jugador</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-icon">💰</span>
-                    <span id="gold">100</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-icon">🪵</span>
-                    <span id="wood">50</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-icon">🪨</span>
-                    <span id="stone">50</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-icon">🌾</span>
-                    <span id="food">30</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-icon">⚡</span>
-                    <span id="mana">100</span>
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="hud">
+            <div class="hud-top">
+                <div class="hud-info">
+                    <div><strong id="playerNameHUD">Jugador</strong></div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthBar"></div>
+                    </div>
+                    <div class="stats">
+                        💰 Oro: <span id="goldAmount">0</span><br>
+                        👥 Online: <span id="onlineCount">1</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="toolbar">
-            <div class="tool-btn active" onclick="selectTool('move')" title="Mover">👆</div>
-            <div class="tool-btn" onclick="selectTool('build')" title="Construir">🏗️</div>
-            <div class="tool-btn" onclick="selectTool('magic')" title="Magia">✨</div>
-            <div class="tool-btn" onclick="selectTool('attack')" title="Atacar">⚔️</div>
-            <div class="tool-btn" onclick="openCharacterMenu()" title="Personaje">👤</div>
-            <div class="tool-btn" onclick="toggleAllianceMenu()" title="Alianzas">🤝</div>
+        <div id="menuButtons">
+            <button class="menu-btn" onclick="toggleBuildMenu()">🏗️ CONSTRUIR</button>
+            <button class="menu-btn" onclick="toggleCharacterMenu()">👤 PERSONAJE</button>
+            <button class="menu-btn" onclick="toggleShopMenu()">🛒 TIENDA</button>
+            <button class="menu-btn" onclick="toggleAllianceMenu()">⚔️ ALIANZA</button>
+            <button class="menu-btn" onclick="togglePlayersList()">👥 JUGADORES</button>
+            <button class="menu-btn" onclick="toggleChat()">💬 CHAT</button>
+        </div>
+
+        <div id="chatBox"></div>
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." maxlength="100">
+
+        <div id="inventory"></div>
+
+        <div id="mobileControls">
+            <div class="joystick" id="joystick">
+                <div class="joystick-inner" id="joystickInner"></div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn" id="actionBtn">⚒️</button>
+            <button class="action-btn" id="attackBtn">⚔️</button>
         </div>
 
         <div id="buildMenu">
-            <h3>🏗️ CONSTRUCCIÓN</h3>
-            
-            <div class="build-category">
-                <h4>Edificios</h4>
-                <div class="build-items">
-                    <div class="build-item" onclick="selectBuild('house')">
-                        <div class="icon">🏠</div>
-                        <div class="name">Casa</div>
-                        <div class="cost">🪵20 🪨10</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('tower')">
-                        <div class="icon">🗼</div>
-                        <div class="name">Torre</div>
-                        <div class="cost">🪵15 🪨25</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('wall')">
-                        <div class="icon">🧱</div>
-                        <div class="name">Muro</div>
-                        <div class="cost">🪨15</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('farm')">
-                        <div class="icon">🌾</div>
-                        <div class="name">Granja</div>
-                        <div class="cost">🪵10</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('shop')">
-                        <div class="icon">🏪</div>
-                        <div class="name">Tienda</div>
-                        <div class="cost">🪵30 💰50</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('castle')">
-                        <div class="icon">🏰</div>
-                        <div class="name">Castillo</div>
-                        <div class="cost">🪵50 🪨100</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="build-category">
-                <h4>Decoración</h4>
-                <div class="build-items">
-                    <div class="build-item" onclick="selectBuild('tree')">
-                        <div class="icon">🌳</div>
-                        <div class="name">Árbol</div>
-                        <div class="cost">Gratis</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('rock')">
-                        <div class="icon">🪨</div>
-                        <div class="name">Roca</div>
-                        <div class="cost">Gratis</div>
-                    </div>
-                    <div class="build-item" onclick="selectBuild('flower')">
-                        <div class="icon">🌸</div>
-                        <div class="name">Flor</div>
-                        <div class="cost">Gratis</div>
-                    </div>
-                </div>
-            </div>
+            <button class="close-btn" onclick="toggleBuildMenu()">✕</button>
+            <h2>CONSTRUCCIÓN</h2>
+            <div class="build-grid" id="buildGrid"></div>
         </div>
 
         <div id="characterMenu">
-            <h2>👤 PERSONALIZAR PERSONAJE</h2>
-            
-            <canvas id="characterPreview" class="character-preview" width="200" height="200"></canvas>
-            
-            <div class="customization-grid">
-                <div class="custom-group">
-                    <h4>Piel</h4>
-                    <input type="color" class="color-input" id="skinColor" value="#ffdbac" onchange="updateCharacter()">
-                </div>
-                
-                <div class="custom-group">
-                    <h4>Cabello</h4>
-                    <input type="color" class="color-input" id="hairColor" value="#8B4513" onchange="updateCharacter()">
-                    <select id="hairStyle" onchange="updateCharacter()">
-                        <option value="short">Corto</option>
-                        <option value="long">Largo</option>
-                        <option value="spiky">Puntiagudo</option>
-                        <option value="bald">Calvo</option>
-                    </select>
-                </div>
-                
-                <div class="custom-group">
-                    <h4>Camisa</h4>
-                    <input type="color" class="color-input" id="shirtColor" value="#ff0000" onchange="updateCharacter()">
-                </div>
-                
-                <div class="custom-group">
-                    <h4>Pantalones</h4>
-                    <input type="color" class="color-input" id="pantsColor" value="#0000ff" onchange="updateCharacter()">
-                </div>
-                
-                <div class="custom-group">
-                    <h4>Zapatos</h4>
-                    <input type="color" class="color-input" id="shoesColor" value="#8B4513" onchange="updateCharacter()">
-                </div>
-                
-                <div class="custom-group">
-                    <h4>Accesorio</h4>
-                    <select id="accessory" onchange="updateCharacter()">
-                        <option value="none">Ninguno</option>
-                        <option value="hat">Sombrero</option>
-                        <option value="crown">Corona</option>
-                        <option value="helmet">Casco</option>
-                    </select>
-                </div>
+            <button class="close-btn" onclick="toggleCharacterMenu()">✕</button>
+            <h2>PERSONALIZAR</h2>
+            <div class="character-preview">
+                <canvas id="charPreview" width="128" height="128"></canvas>
             </div>
-            
-            <div class="build-category">
-                <h4>Poderes Mágicos</h4>
-                <div class="build-items">
-                    <div class="build-item" onclick="selectPower('fire')">
-                        <div class="icon">🔥</div>
-                        <div class="name">Fuego</div>
-                        <div class="cost">⚡30</div>
-                    </div>
-                    <div class="build-item" onclick="selectPower('ice')">
-                        <div class="icon">❄️</div>
-                        <div class="name">Hielo</div>
-                        <div class="cost">⚡30</div>
-                    </div>
-                    <div class="build-item" onclick="selectPower('heal')">
-                        <div class="icon">💚</div>
-                        <div class="name">Curar</div>
-                        <div class="cost">⚡20</div>
-                    </div>
-                    <div class="build-item" onclick="selectPower('lightning')">
-                        <div class="icon">⚡</div>
-                        <div class="name">Rayo</div>
-                        <div class="cost">⚡40</div>
-                    </div>
-                    <div class="build-item" onclick="selectPower('teleport')">
-                        <div class="icon">🌀</div>
-                        <div class="name">Teletransporte</div>
-                        <div class="cost">⚡50</div>
-                    </div>
-                    <div class="build-item" onclick="selectPower('shield')">
-                        <div class="icon">🛡️</div>
-                        <div class="name">Escudo</div>
-                        <div class="cost">⚡25</div>
-                    </div>
-                </div>
+            <div class="customization-option">
+                <label>Color de Piel:</label>
+                <input type="color" id="skinColor" value="#ffcc99">
             </div>
-            
-            <button class="btn btn-primary" onclick="saveCharacter()">Guardar Personaje</button>
-            <button class="btn btn-secondary" onclick="closeCharacterMenu()">Cerrar</button>
+            <div class="customization-option">
+                <label>Color de Ropa:</label>
+                <input type="color" id="clothesColor" value="#4169e1">
+            </div>
+            <div class="customization-option">
+                <label>Cabello:</label>
+                <select id="hairStyle">
+                    <option value="none">Sin cabello</option>
+                    <option value="short">Corto</option>
+                    <option value="long">Largo</option>
+                </select>
+                <input type="color" id="hairColor" value="#8b4513">
+            </div>
+            <div class="customization-option">
+                <label>Poder Mágico:</label>
+                <select id="magicPower">
+                    <option value="none">Ninguno</option>
+                    <option value="fire">🔥 Fuego</option>
+                    <option value="water">💧 Agua</option>
+                    <option value="earth">🌍 Tierra</option>
+                    <option value="wind">💨 Viento</option>
+                </select>
+            </div>
+            <button class="btn" onclick="saveCharacter()">GUARDAR</button>
         </div>
 
         <div id="allianceMenu">
-            <h3>🤝 ALIANZAS</h3>
-            <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="createAlliance()">Crear Alianza</button>
-            <div id="allianceList"></div>
-            <button class="btn btn-secondary" onclick="toggleAllianceMenu()">Cerrar</button>
-        </div>
-
-        <div id="chatBox">
-            <div id="chatMessages"></div>
-            <input type="text" id="chatInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter')sendMessage()">
-        </div>
-
-        <div id="mobileControls">
-            <div class="joystick-area">
-                <div class="joystick-base" id="joystickBase">
-                    <div class="joystick-stick" id="joystickStick"></div>
-                </div>
+            <button class="close-btn" onclick="toggleAllianceMenu()">✕</button>
+            <h2>ALIANZAS</h2>
+            <div class="alliance-info" id="allianceInfo">
+                No tienes alianza
             </div>
-            
-            <div class="action-buttons">
-                <div class="action-btn" ontouchstart="mobileAction('interact')">👆</div>
-                <div class="action-btn" ontouchstart="mobileAction('magic')">✨</div>
-                <div class="action-btn" ontouchstart="mobileAction('attack')">⚔️</div>
-            </div>
+            <button class="btn" onclick="createAlliance()">CREAR ALIANZA</button>
+            <div class="alliance-members" id="allianceMembers"></div>
         </div>
 
-        <canvas id="gameCanvas"></canvas>
+        <div id="shopMenu">
+            <button class="close-btn" onclick="toggleShopMenu()">✕</button>
+            <h2>TIENDA</h2>
+            <div class="shop-grid" id="shopGrid"></div>
+        </div>
+
+        <div id="playersList">
+            <h3>JUGADORES ONLINE</h3>
+            <div id="playersListContent"></div>
+        </div>
+
+        <div id="notifications"></div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- PEGA AQUÍ LA PARTE 2 Y PARTE 3 COMPLETAS -->
+    <!-- ========================================== -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // PEGA AQUÍ TODO EL CÓDIGO DE LA PARTE 2
+     // PARTE 2: JAVASCRIPT - SISTEMA BASE Y FIREBASE
+// Pega esto dentro de <script type="module"> después del HTML
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDTn_VTTMznvVJIZSjKhGOkvSOQQthNSfk",
-            authDomain: "no-choques.firebaseapp.com",
-            projectId: "no-choques",
-            storageBucket: "no-choques.firebasestorage.app",
-            messagingSenderId: "222726589609",
-            appId: "1:222726589609:web:59e6dd00f28be661b0edb8"
-        };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+const firebaseConfig = {
+    apiKey: "AIzaSyDTn_VTTMznvVJIZSjKhGOkvSOQQthNSfk",
+    authDomain: "no-choques.firebaseapp.com",
+    projectId: "no-choques",
+    storageBucket: "no-choques.firebasestorage.app",
+    messagingSenderId: "222726589609",
+    appId: "1:222726589609:web:59e6dd00f28be661b0edb8"
+};
 
-        let currentUser = null;
-        let currentUsername = null;
-        let canvas, ctx;
-        let currentTool = 'move';
-        let currentBuild = null;
-        let selectedPowers = [];
-        let worldData = {};
-        let players = {};
-        let buildings = [];
-        let resources = [];
-        let animals = [];
-        let camera = { x: 0, y: 0 };
-        let playerData = {
-            x: 400,
-            y: 400,
-            vx: 0,
-            vy: 0,
-            gold: 100,
-            wood: 50,
-            stone: 50,
-            food: 30,
-            mana: 100,
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Variables globales
+let currentUser = null;
+let currentUsername = null;
+let canvas, ctx;
+let gameRunning = false;
+let players = new Map();
+let worldData = {
+    tiles: [],
+    buildings: [],
+    items: [],
+    npcs: []
+};
+
+// Configuración del mundo
+const TILE_SIZE = 16;
+const WORLD_WIDTH = 200;
+const WORLD_HEIGHT = 200;
+const CHUNK_SIZE = 16;
+
+// Jugador local
+let localPlayer = {
+    x: WORLD_WIDTH * TILE_SIZE / 2,
+    y: WORLD_HEIGHT * TILE_SIZE / 2,
+    vx: 0,
+    vy: 0,
+    speed: 3,
+    health: 100,
+    maxHealth: 100,
+    gold: 100,
+    inventory: [],
+    customization: {
+        skinColor: '#ffcc99',
+        clothesColor: '#4169e1',
+        hairStyle: 'short',
+        hairColor: '#8b4513',
+        magicPower: 'none'
+    },
+    selectedSlot: 0,
+    alliance: null
+};
+
+// Cámara
+let camera = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0
+};
+
+// Control
+let keys = {};
+let mouseX = 0;
+let mouseY = 0;
+let joystickActive = false;
+let joystickDelta = { x: 0, y: 0 };
+
+// Listeners de Firebase
+let playersListener = null;
+let worldListener = null;
+
+// ==================== AUTENTICACIÓN ====================
+window.register = async function() {
+    const username = document.getElementById('usernameInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    const errorDiv = document.getElementById('loginError');
+
+    if (!username || !password) {
+        errorDiv.textContent = 'Completa todos los campos';
+        return;
+    }
+
+    if (username.length < 3) {
+        errorDiv.textContent = 'Usuario muy corto';
+        return;
+    }
+
+    if (password.length < 6) {
+        errorDiv.textContent = 'Contraseña muy corta';
+        return;
+    }
+
+    try {
+        const usernameQuery = query(collection(db, "pixelworld_players"), where("username", "==", username));
+        const snapshot = await getDocs(usernameQuery);
+        
+        if (!snapshot.empty) {
+            errorDiv.textContent = 'Usuario ya existe';
+            return;
+        }
+
+        const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        await setDoc(doc(db, "pixelworld_players", userCredential.user.uid), {
+            username: username,
+            x: WORLD_WIDTH * TILE_SIZE / 2,
+            y: WORLD_HEIGHT * TILE_SIZE / 2,
             health: 100,
-            character: {
-                skinColor: '#ffdbac',
-                hairColor: '#8B4513',
-                hairStyle: 'short',
-                shirtColor: '#ff0000',
-                pantsColor: '#0000ff',
-                shoesColor: '#8B4513',
-                accessory: 'none'
-            },
-            powers: [],
-            weapon: null,
-            alliance: null
-        };
+            gold: 100,
+            customization: localPlayer.customization,
+            inventory: [],
+            alliance: null,
+            online: true,
+            lastUpdate: Date.now()
+        });
+        
+        errorDiv.textContent = '';
+    } catch (error) {
+        console.error('Error:', error);
+        errorDiv.textContent = 'Error al crear cuenta';
+    }
+};
 
-        let keys = {};
-        let mouseX = 0;
-        let mouseY = 0;
-        let worldX = 0;
-        let worldY = 0;
-        let frame = 0;
-        let lastUpdate = Date.now();
+window.login = async function() {
+    const username = document.getElementById('usernameInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    const errorDiv = document.getElementById('loginError');
 
-        function initCanvas() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = false;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            });
-        }
+    if (!username || !password) {
+        errorDiv.textContent = 'Completa todos los campos';
+        return;
+    }
 
-        window.register = async function() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-            const errorDiv = document.getElementById('loginError');
+    document.getElementById('loginLoading').style.display = 'block';
 
-            if (!username || !password) {
-                errorDiv.textContent = 'Por favor completa todos los campos';
-                return;
-            }
-            if (username.length < 3) {
-                errorDiv.textContent = 'El usuario debe tener al menos 3 caracteres';
-                return;
-            }
-            if (password.length < 6) {
-                errorDiv.textContent = 'La contraseña debe tener al menos 6 caracteres';
-                return;
-            }
+    try {
+        const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
+        await signInWithEmailAndPassword(auth, email, password);
+        errorDiv.textContent = '';
+    } catch (error) {
+        document.getElementById('loginLoading').style.display = 'none';
+        errorDiv.textContent = 'Usuario o contraseña incorrectos';
+    }
+};
 
-            try {
-                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@worldbox.game`;
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await setDoc(doc(db, "players", userCredential.user.uid), {
-                    username: username,
-                    ...playerData,
-                    createdAt: new Date(),
-                    online: true
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        try {
+            const playerDoc = await getDoc(doc(db, "pixelworld_players", user.uid));
+            if (playerDoc.exists()) {
+                const data = playerDoc.data();
+                currentUsername = data.username;
+                localPlayer.x = data.x || localPlayer.x;
+                localPlayer.y = data.y || localPlayer.y;
+                localPlayer.health = data.health || 100;
+                localPlayer.gold = data.gold || 100;
+                localPlayer.customization = data.customization || localPlayer.customization;
+                localPlayer.inventory = data.inventory || [];
+                localPlayer.alliance = data.alliance || null;
+                
+                await updateDoc(doc(db, "pixelworld_players", user.uid), {
+                    online: true,
+                    lastUpdate: Date.now()
                 });
-                errorDiv.textContent = '';
-            } catch (error) {
-                console.error('Error:', error);
-                errorDiv.textContent = 'Error al crear la cuenta';
+                
+                startGame();
             }
-        };
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+});
 
-        window.login = async function() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-            const errorDiv = document.getElementById('loginError');
+// ==================== INICIO DEL JUEGO ====================
+function startGame() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'block';
+    
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    setupControls();
+    generateWorld();
+    setupInventory();
+    setupShop();
+    setupBuildMenu();
+    
+    document.getElementById('playerNameHUD').textContent = currentUsername;
+    updateHUD();
+    
+    listenToPlayers();
+    listenToWorld();
+    
+    gameRunning = true;
+    gameLoop();
+    
+    setInterval(updatePlayerPosition, 100);
+    setInterval(syncWithServer, 5000);
+}
 
-            if (!username || !password) {
-                errorDiv.textContent = 'Por favor completa todos los campos';
-                return;
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    camera.width = canvas.width;
+    camera.height = canvas.height;
+}
+
+// ==================== CONTROLES ====================
+function setupControls() {
+    // Teclado
+    window.addEventListener('keydown', (e) => {
+        keys[e.key] = true;
+        
+        if (e.key === 'e' || e.key === 'E') {
+            interact();
+        }
+        
+        if (e.key === 'Enter' && document.getElementById('chatInput').style.display === 'block') {
+            sendChatMessage();
+        }
+    });
+    
+    window.addEventListener('keyup', (e) => {
+        keys[e.key] = false;
+    });
+    
+    // Mouse
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('click', (e) => {
+        const worldX = camera.x + mouseX;
+        const worldY = camera.y + mouseY;
+        handleWorldClick(worldX, worldY);
+    });
+    
+    // Joystick móvil
+    const joystick = document.getElementById('joystick');
+    const joystickInner = document.getElementById('joystickInner');
+    
+    joystick.addEventListener('touchstart', handleJoystickStart);
+    joystick.addEventListener('touchmove', handleJoystickMove);
+    joystick.addEventListener('touchend', handleJoystickEnd);
+    
+    function handleJoystickStart(e) {
+        e.preventDefault();
+        joystickActive = true;
+    }
+    
+    function handleJoystickMove(e) {
+        if (!joystickActive) return;
+        e.preventDefault();
+        
+        const rect = joystick.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left - centerX;
+        const y = touch.clientY - rect.top - centerY;
+        
+        const distance = Math.sqrt(x * x + y * y);
+        const maxDistance = 35;
+        
+        if (distance > maxDistance) {
+            joystickDelta.x = (x / distance) * maxDistance;
+            joystickDelta.y = (y / distance) * maxDistance;
+        } else {
+            joystickDelta.x = x;
+            joystickDelta.y = y;
+        }
+        
+        joystickInner.style.transform = `translate(calc(-50% + ${joystickDelta.x}px), calc(-50% + ${joystickDelta.y}px))`;
+    }
+    
+    function handleJoystickEnd(e) {
+        e.preventDefault();
+        joystickActive = false;
+        joystickDelta = { x: 0, y: 0 };
+        joystickInner.style.transform = 'translate(-50%, -50%)';
+    }
+    
+    // Botones de acción móviles
+    document.getElementById('actionBtn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        interact();
+    });
+    
+    document.getElementById('attackBtn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        attack();
+    });
+    
+    // Chat
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+    });
+}
+
+// ==================== GENERACIÓN DEL MUNDO ====================
+function generateWorld() {
+    worldData.tiles = [];
+    
+    for (let y = 0; y < WORLD_HEIGHT; y++) {
+        worldData.tiles[y] = [];
+        for (let x = 0; x < WORLD_WIDTH; x++) {
+            const noise = Math.random();
+            let tile;
+            
+            if (noise < 0.3) {
+                tile = { type: 'grass', walkable: true };
+            } else if (noise < 0.5) {
+                tile = { type: 'dirt', walkable: true };
+            } else if (noise < 0.65) {
+                tile = { type: 'water', walkable: false };
+            } else if (noise < 0.75) {
+                tile = { type: 'tree', walkable: false, resource: 'wood' };
+            } else if (noise < 0.80) {
+                tile = { type: 'stone', walkable: false, resource: 'stone' };
+            } else {
+                tile = { type: 'grass', walkable: true };
             }
+            
+            worldData.tiles[y][x] = tile;
+        }
+    }
+    
+    // Generar algunos NPCs
+    for (let i = 0; i < 10; i++) {
+        worldData.npcs.push({
+            id: 'npc_' + i,
+            x: Math.random() * WORLD_WIDTH * TILE_SIZE,
+            y: Math.random() * WORLD_HEIGHT * TILE_SIZE,
+            type: Math.random() > 0.5 ? 'villager' : 'merchant',
+            health: 50
+        });
+    }
+}
 
-            try {
-                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@worldbox.game`;
-                await signInWithEmailAndPassword(auth, email, password);
-                errorDiv.textContent = '';
-            } catch (error) {
-                errorDiv.textContent = 'Usuario o contraseña incorrectos';
-            }
-        };
+// ==================== INVENTARIO ====================
+function setupInventory() {
+    const inventory = document.getElementById('inventory');
+    inventory.innerHTML = '';
+    
+    localPlayer.inventory = [
+        { type: 'wood', count: 10 },
+        { type: 'stone', count: 5 },
+        { type: 'sword', count: 1 },
+        { type: 'pickaxe', count: 1 },
+        { type: 'food', count: 3 }
+    ];
+    
+    for (let i = 0; i < 8; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot';
+        if (i === localPlayer.selectedSlot) slot.classList.add('active');
+        
+        slot.onclick = () => selectSlot(i);
+        
+        if (localPlayer.inventory[i]) {
+            const itemCanvas = document.createElement('canvas');
+            itemCanvas.width = 40;
+            itemCanvas.height = 40;
+            const itemCtx = itemCanvas.getContext('2d');
+            drawItem(itemCtx, localPlayer.inventory[i].type, 0, 0, 40);
+            slot.appendChild(itemCanvas);
+            
+            const count = document.createElement('div');
+            count.className = 'item-count';
+            count.textContent = localPlayer.inventory[i].count;
+            slot.appendChild(count);
+        }
+        
+        inventory.appendChild(slot);
+    }
+}
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                const playerDoc = await getDoc(doc(db, "players", user.uid));
-                if (playerDoc.exists()) {
-                    const data = playerDoc.data();
-                    currentUsername = data.username;
-                    playerData = { ...playerData, ...data };
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('gameContainer').style.display = 'block';
-                    document.getElementById('playerName').textContent = currentUsername;
-                    initCanvas();
-                    initGame();
-                    startGameLoop();
-                    listenToPlayers();
-                    await updateDoc(doc(db, "players", user.uid), { online: true });
+function selectSlot(index) {
+    localPlayer.selectedSlot = index;
+    setupInventory();
+}
+
+// ==================== MENÚS ====================
+window.toggleBuildMenu = function() {
+    const menu = document.getElementById('buildMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+
+window.toggleCharacterMenu = function() {
+    const menu = document.getElementById('characterMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    if (menu.style.display === 'block') {
+        updateCharacterPreview();
+    }
+};
+
+window.toggleShopMenu = function() {
+    const menu = document.getElementById('shopMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+
+window.toggleAllianceMenu = function() {
+    const menu = document.getElementById('allianceMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    updateAllianceInfo();
+};
+
+window.togglePlayersList = function() {
+    const list = document.getElementById('playersList');
+    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+};
+
+window.toggleChat = function() {
+    const chat = document.getElementById('chatBox');
+    const input = document.getElementById('chatInput');
+    const isVisible = chat.style.display === 'block';
+    chat.style.display = isVisible ? 'none' : 'block';
+    input.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) input.focus();
+};
+
+function setupBuildMenu() {
+    const grid = document.getElementById('buildGrid');
+    const buildItems = [
+        { type: 'wall', name: 'Muro', cost: 5 },
+        { type: 'floor', name: 'Suelo', cost: 3 },
+        { type: 'door', name: 'Puerta', cost: 8 },
+        { type: 'chest', name: 'Cofre', cost: 10 },
+        { type: 'furnace', name: 'Horno', cost: 15 },
+        { type: 'bed', name: 'Cama', cost: 12 },
+        { type: 'table', name: 'Mesa', cost: 6 },
+        { type: 'chair', name: 'Silla', cost: 4 }
+    ];
+    
+    buildItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'build-item';
+        div.innerHTML = `
+            <canvas width="40" height="40"></canvas>
+            <div>${item.name}</div>
+            <div style="color: #ffff00;">${item.cost} madera</div>
+        `;
+        const canvas = div.querySelector('canvas');
+        const ctx = canvas.getContext('2d');
+        drawBuilding(ctx, item.type, 0, 0, 40);
+        
+        div.onclick = () => placeBuilding(item.type, item.cost);
+        grid.appendChild(div);
+    });
+}
+
+function setupShop() {
+    const grid = document.getElementById('shopGrid');
+    const shopItems = [
+        { type: 'sword', name: 'Espada', price: 50 },
+        { type: 'armor', name: 'Armadura', price: 100 },
+        { type: 'bow', name: 'Arco', price: 75 },
+        { type: 'potion', name: 'Poción', price: 20 },
+        { type: 'food', name: 'Comida', price: 10 },
+        { type: 'pickaxe', name: 'Pico', price: 30 }
+    ];
+    
+    shopItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'shop-item';
+        div.innerHTML = `
+            <canvas width="40" height="40"></canvas>
+            <div>${item.name}</div>
+            <div class="shop-price">💰 ${item.price}</div>
+        `;
+        const canvas = div.querySelector('canvas');
+        const ctx = canvas.getContext('2d');
+        drawItem(ctx, item.type, 0, 0, 40);
+        
+        div.onclick = () => buyItem(item.type, item.price);
+        grid.appendChild(div);
+    });
+}
+
+// ==================== ACTUALIZACIÓN ====================
+async function updatePlayerPosition() {
+    if (!currentUser || !gameRunning) return;
+    
+    try {
+        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+            x: localPlayer.x,
+            y: localPlayer.y,
+            health: localPlayer.health,
+            customization: localPlayer.customization,
+            lastUpdate: Date.now()
+        });
+    } catch (error) {
+        console.error("Error actualizando posición:", error);
+    }
+}
+
+async function syncWithServer() {
+    if (!currentUser) return;
+    
+    try {
+        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+            gold: localPlayer.gold,
+            inventory: localPlayer.inventory,
+            alliance: localPlayer.alliance,
+            online: true,
+            lastUpdate: Date.now()
+        });
+    } catch (error) {
+        console.error("Error sincronizando:", error);
+    }
+}
+
+function listenToPlayers() {
+    const q = query(collection(db, "pixelworld_players"), where("online", "==", true));
+    playersListener = onSnapshot(q, (snapshot) => {
+        players.clear();
+        let onlineCount = 0;
+        
+        snapshot.forEach((doc) => {
+            if (doc.id !== currentUser.uid) {
+                const data = doc.data();
+                if (Date.now() - data.lastUpdate < 30000) {
+                    players.set(doc.id, data);
+                    onlineCount++;
                 }
             }
         });
+        
+        document.getElementById('onlineCount').textContent = onlineCount + 1;
+        updatePlayersList();
+    });
+}
 
-        function initGame() {
-            generateWorld();
-            updateResourceDisplay();
-            setupControls();
-            setupMobileControls();
-        }
+function listenToWorld() {
+    // Escuchar cambios en edificios y estructuras
+}
 
-        function generateWorld() {
-            const worldSize = 200;
-            for (let x = 0; x < worldSize; x++) {
-                for (let y = 0; y < worldSize; y++) {
-                    const tileX = x * 32;
-                    const tileY = y * 32;
-                    if (!worldData[`${x},${y}`]) {
-                        worldData[`${x},${y}`] = { type: 'grass', x: tileX, y: tileY };
-                    }
-                }
-            }
-            for (let i = 0; i < 300; i++) {
-                const x = Math.floor(Math.random() * worldSize) * 32;
-                const y = Math.floor(Math.random() * worldSize) * 32;
-                resources.push({ type: 'tree', x: x, y: y, health: 100 });
-            }
-            for (let i = 0; i < 200; i++) {
-                const x = Math.floor(Math.random() * worldSize) * 32;
-                const y = Math.floor(Math.random() * worldSize) * 32;
-                resources.push({ type: 'rock', x: x, y: y, health: 150 });
-            }
-            const animalTypes = ['sheep', 'cow', 'chicken', 'pig'];
-            for (let i = 0; i < 50; i++) {
-                const x = Math.floor(Math.random() * worldSize * 32);
-                const y = Math.floor(Math.random() * worldSize * 32);
-                animals.push({
-                    type: animalTypes[Math.floor(Math.random() * animalTypes.length)],
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    frame: 0
-                });
-            }
-        }
+function updatePlayersList() {
+    const content = document.getElementById('playersListContent');
+    content.innerHTML = '';
+    
+    players.forEach((player, id) => {
+        const item = document.createElement('div');
+        item.className = 'player-item';
+        item.textContent = `${player.username} ${player.alliance ? '⚔️' : ''}`;
+        item.onclick = () => showPlayerInfo(player);
+        content.appendChild(item);
+    });
+}
 
-        function listenToPlayers() {
-            const playersRef = collection(db, "players");
-            const q = query(playersRef, where("online", "==", true));
-            onSnapshot(q, (snapshot) => {
-                players = {};
-                snapshot.forEach((doc) => {
-                    if (doc.id !== currentUser.uid) {
-                        players[doc.id] = doc.data();
-                    }
-                });
-            });
-        }
+function updateHUD() {
+    document.getElementById('healthBar').style.width = (localPlayer.health / localPlayer.maxHealth * 100) + '%';
+    document.getElementById('goldAmount').textContent = localPlayer.gold;
+}
 
-        function startGameLoop() {
-            function gameLoop() {
-                const now = Date.now();
-                const delta = (now - lastUpdate) / 1000;
-                lastUpdate = now;
-                update(delta);
-                render();
-                frame++;
-                requestAnimationFrame(gameLoop);
-            }
-            gameLoop();
-        }
+// Continúa en la Parte 3...   
+    // SEGUIDO DE TODO EL CÓDIGO DE LA PARTE 3
+        // PARTE 3: JAVASCRIPT - RENDERIZADO Y FUNCIONES DEL JUEGO
+// Pega esto después de la Parte 2
 
-        function update(delta) {
-            const speed = 200;
-            if (keys['ArrowUp'] || keys['w'] || keys['W']) playerData.vy = -speed * delta;
-            else if (keys['ArrowDown'] || keys['s'] || keys['S']) playerData.vy = speed * delta;
-            else playerData.vy *= 0.8;
-            if (keys['ArrowLeft'] || keys['a'] || keys['A']) playerData.vx = -speed * delta;
-            else if (keys['ArrowRight'] || keys['d'] || keys['D']) playerData.vx = speed * delta;
-            else playerData.vx *= 0.8;
-            playerData.x += playerData.vx;
-            playerData.y += playerData.vy;
-            playerData.x = Math.max(0, Math.min(playerData.x, 6400 - 32));
-            playerData.y = Math.max(0, Math.min(playerData.y, 6400 - 32));
-            camera.x = playerData.x - canvas.width / 2;
-            camera.y = playerData.y - canvas.height / 2;
-            animals.forEach(animal => {
-                animal.x += animal.vx;
-                animal.y += animal.vy;
-                animal.frame++;
-                if (Math.random() < 0.02) {
-                    animal.vx = (Math.random() - 0.5) * 2;
-                    animal.vy = (Math.random() - 0.5) * 2;
-                }
-                if (animal.x < 0 || animal.x > 6400) animal.vx *= -1;
-                if (animal.y < 0 || animal.y > 6400) animal.vy *= -1;
-            });
-            if (frame % 60 === 0 && currentUser) {
-                updateDoc(doc(db, "players", currentUser.uid), {
-                    x: playerData.x,
-                    y: playerData.y,
-                    character: playerData.character
-                });
-            }
-        }
+// ==================== LOOP PRINCIPAL ====================
+function gameLoop() {
+    if (!gameRunning) return;
+    
+    updatePlayer();
+    updateCamera();
+    render();
+    
+    requestAnimationFrame(gameLoop);
+}
 
-        function render() {
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#87CEEB');
-            gradient.addColorStop(1, '#E0F6FF');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.translate(-camera.x, -camera.y);
-            const startX = Math.floor(camera.x / 32);
-            const endX = Math.ceil((camera.x + canvas.width) / 32);
-            const startY = Math.floor(camera.y / 32);
-            const endY = Math.ceil((camera.y + canvas.height) / 32);
-            for (let x = startX; x <= endX; x++) {
-                for (let y = startY; y <= endY; y++) {
-                    const tile = worldData[`${x},${y}`];
-                    if (tile) drawTile(tile.type, x * 32, y * 32);
-                }
-            }
-            resources.forEach(resource => {
-                if (isInView(resource.x, resource.y)) {
-                    if (resource.type === 'tree') drawTree(resource.x, resource.y);
-                    else if (resource.type === 'rock') drawRock(resource.x, resource.y);
-                }
-            });
-            buildings.forEach(building => {
-                if (isInView(building.x, building.y)) drawBuilding(building);
-            });
-            animals.forEach(animal => {
-                if (isInView(animal.x, animal.y)) drawAnimal(animal);
-            });
-            drawPlayer(playerData.x, playerData.y, playerData.character, currentUsername, true);
-            Object.values(players).forEach(player => {
-                if (isInView(player.x, player.y)) {
-                    drawPlayer(player.x, player.y, player.character, player.username, false);
-                }
-            });
-            ctx.restore();
-            if (currentTool === 'build' && currentBuild) drawBuildPreview();
-        }
+function updatePlayer() {
+    // Movimiento con teclado
+    localPlayer.vx = 0;
+    localPlayer.vy = 0;
+    
+    if (keys['w'] || keys['W'] || keys['ArrowUp']) localPlayer.vy = -localPlayer.speed;
+    if (keys['s'] || keys['S'] || keys['ArrowDown']) localPlayer.vy = localPlayer.speed;
+    if (keys['a'] || keys['A'] || keys['ArrowLeft']) localPlayer.vx = -localPlayer.speed;
+    if (keys['d'] || keys['D'] || keys['ArrowRight']) localPlayer.vx = localPlayer.speed;
+    
+    // Movimiento con joystick
+    if (joystickActive) {
+        localPlayer.vx = (joystickDelta.x / 35) * localPlayer.speed;
+        localPlayer.vy = (joystickDelta.y / 35) * localPlayer.speed;
+    }
+    
+    // Normalizar diagonal
+    if (localPlayer.vx !== 0 && localPlayer.vy !== 0) {
+        const factor = Math.sqrt(2) / 2;
+        localPlayer.vx *= factor;
+        localPlayer.vy *= factor;
+    }
+    
+    // Aplicar movimiento con colisiones
+    const newX = localPlayer.x + localPlayer.vx;
+    const newY = localPlayer.y + localPlayer.vy;
+    
+    if (canWalk(newX, localPlayer.y)) {
+        localPlayer.x = newX;
+    }
+    if (canWalk(localPlayer.x, newY)) {
+        localPlayer.y = newY;
+    }
+    
+    // Límites del mundo
+    localPlayer.x = Math.max(0, Math.min(localPlayer.x, WORLD_WIDTH * TILE_SIZE - TILE_SIZE));
+    localPlayer.y = Math.max(0, Math.min(localPlayer.y, WORLD_HEIGHT * TILE_SIZE - TILE_SIZE));
+}
 
-        function isInView(x, y) {
-            return x >= camera.x - 100 && x <= camera.x + canvas.width + 100 &&
-                   y >= camera.y - 100 && y <= camera.y + canvas.height + 100;
-        }
+function canWalk(x, y) {
+    const tileX = Math.floor(x / TILE_SIZE);
+    const tileY = Math.floor(y / TILE_SIZE);
+    
+    if (tileX < 0 || tileX >= WORLD_WIDTH || tileY < 0 || tileY >= WORLD_HEIGHT) {
+        return false;
+    }
+    
+    const tile = worldData.tiles[tileY][tileX];
+    return tile.walkable;
+}
 
-        function drawTile(type, x, y) {
-            const colors = {
-                grass: ['#7ec850', '#68b03c', '#5ca030'],
-                dirt: ['#a0826d', '#8b6f5c', '#7a5e4c'],
-                water: ['#4a90e2', '#3a7bc8', '#2a6bb8']
-            };
-            const color = colors[type] || colors.grass;
-            const shade = color[Math.floor((x + y) / 32) % color.length];
-            ctx.fillStyle = shade;
-            ctx.fillRect(x, y, 32, 32);
-            if (type === 'grass' && Math.random() < 0.3) {
-                ctx.fillStyle = '#6aa83c';
-                ctx.fillRect(x + Math.random() * 24, y + Math.random() * 24, 4, 4);
+function updateCamera() {
+    camera.x = localPlayer.x - camera.width / 2;
+    camera.y = localPlayer.y - camera.height / 2;
+    
+    camera.x = Math.max(0, Math.min(camera.x, WORLD_WIDTH * TILE_SIZE - camera.width));
+    camera.y = Math.max(0, Math.min(camera.y, WORLD_HEIGHT * TILE_SIZE - camera.height));
+}
+
+// ==================== RENDERIZADO ====================
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Calcular tiles visibles
+    const startTileX = Math.floor(camera.x / TILE_SIZE);
+    const endTileX = Math.ceil((camera.x + camera.width) / TILE_SIZE);
+    const startTileY = Math.floor(camera.y / TILE_SIZE);
+    const endTileY = Math.ceil((camera.y + camera.height) / TILE_SIZE);
+    
+    // Renderizar tiles
+    for (let y = startTileY; y < endTileY; y++) {
+        for (let x = startTileX; x < endTileX; x++) {
+            if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) {
+                const tile = worldData.tiles[y][x];
+                const screenX = x * TILE_SIZE - camera.x;
+                const screenY = y * TILE_SIZE - camera.y;
+                drawTile(ctx, tile, screenX, screenY);
             }
         }
-
-        function drawTree(x, y) {
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(x + 10, y + 16, 12, 16);
-            ctx.fillStyle = '#654321';
-            ctx.fillRect(x + 18, y + 16, 4, 16);
-            ctx.fillStyle = '#2d5016';
-            ctx.fillRect(x, y, 32, 20);
-            ctx.fillStyle = '#3a6b1e';
-            ctx.fillRect(x + 4, y + 2, 24, 16);
-            ctx.fillStyle = '#4a8b29';
-            ctx.fillRect(x + 8, y + 4, 16, 12);
-            ctx.fillStyle = '#5ca030';
-            ctx.fillRect(x + 10, y + 6, 4, 4);
-            ctx.fillRect(x + 18, y + 8, 4, 4);
+    }
+    
+    // Renderizar edificios
+    worldData.buildings.forEach(building => {
+        const screenX = building.x - camera.x;
+        const screenY = building.y - camera.y;
+        if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
+            drawBuilding(ctx, building.type, screenX, screenY, TILE_SIZE * 2);
         }
-
-        function drawRock(x, y) {
-            ctx.fillStyle = '#808080';
-            ctx.fillRect(x + 4, y + 8, 24, 20);
-            ctx.fillStyle = '#696969';
-            ctx.fillRect(x + 8, y + 4, 16, 24);
-            ctx.fillStyle = '#a9a9a9';
-            ctx.fillRect(x + 10, y + 6, 8, 8);
-            ctx.fillStyle = '#5a5a5a';
-            ctx.fillRect(x + 18, y + 12, 6, 10);
+    });
+    
+    // Renderizar items
+    worldData.items.forEach(item => {
+        const screenX = item.x - camera.x;
+        const screenY = item.y - camera.y;
+        if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
+            drawItem(ctx, item.type, screenX, screenY, TILE_SIZE);
         }
-
-        function drawAnimal(animal) {
-            const colors = { sheep: '#f0f0f0', cow: '#8B4513', chicken: '#fff5e1', pig: '#ffb6c1' };
-            const color = colors[animal.type] || '#ffffff';
-            const walkFrame = Math.floor(animal.frame / 10) % 2;
-            ctx.fillStyle = color;
-            ctx.fillRect(animal.x + 4, animal.y + 4, 16, 12);
-            ctx.fillRect(animal.x + 2, animal.y + 2, 8, 8);
-            ctx.fillStyle = '#654321';
-            if (walkFrame === 0) {
-                ctx.fillRect(animal.x + 6, animal.y + 16, 3, 6);
-                ctx.fillRect(animal.x + 15, animal.y + 16, 3, 6);
-            } else {
-                ctx.fillRect(animal.x + 6, animal.y + 18, 3, 4);
-                ctx.fillRect(animal.x + 15, animal.y + 18, 3, 4);
-            }
-            ctx.fillStyle = '#000';
-            ctx.fillRect(animal.x + 3, animal.y + 4, 2, 2);
+    });
+    
+    // Renderizar NPCs
+    worldData.npcs.forEach(npc => {
+        const screenX = npc.x - camera.x;
+        const screenY = npc.y - camera.y;
+        if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
+            drawNPC(ctx, npc, screenX, screenY);
         }
-
-        function drawBuilding(building) {
-            const x = building.x;
-            const y = building.y;
-            switch (building.type) {
-                case 'house':
-                    ctx.fillStyle = '#d2691e';
-                    ctx.fillRect(x, y + 16, 48, 32);
-                    ctx.fillStyle = '#8b0000';
-                    ctx.fillRect(x - 4, y, 56, 20);
-                    ctx.fillStyle = '#a52a2a';
-                    ctx.fillRect(x, y + 4, 48, 12);
-                    ctx.fillStyle = '#654321';
-                    ctx.fillRect(x + 18, y + 28, 12, 20);
-                    ctx.fillStyle = '#87ceeb';
-                    ctx.fillRect(x + 8, y + 24, 8, 8);
-                    ctx.fillRect(x + 32, y + 24, 8, 8);
-                    break;
-                case 'tower':
-                    ctx.fillStyle = '#696969';
-                    ctx.fillRect(x + 8, y + 24, 32, 40);
-                    ctx.fillStyle = '#808080';
-                    ctx.fillRect(x + 12, y, 24, 64);
-                    ctx.fillStyle = '#696969';
-                    ctx.fillRect(x + 12, y - 4, 6, 8);
-                    ctx.fillRect(x + 22, y - 4, 6, 8);
-                    ctx.fillRect(x + 32, y - 4, 6, 8);
-                    break;
-                case 'wall':
-                    ctx.fillStyle = '#a9a9a9';
-                    ctx.fillRect(x, y + 16, 32, 32);
-                    ctx.fillStyle = '#808080';
-                    ctx.fillRect(x + 4, y + 20, 24, 24);
-                    break;
-                case 'farm':
-                    ctx.fillStyle = '#8b4513';
-                    ctx.fillRect(x, y, 48, 48);
-                    ctx.fillStyle = '#9acd32';
-                    for (let i = 0; i < 4; i++) {
-                        for (let j = 0; j < 4; j++) {
-                            ctx.fillRect(x + i * 12 + 2, y + j * 12 + 2, 8, 8);
-                        }
-                    }
-                    break;
-                case 'shop':
-                    ctx.fillStyle = '#daa520';
-                    ctx.fillRect(x, y + 12, 64, 40);
-                    ctx.fillStyle = '#b8860b';
-                    ctx.fillRect(x - 4, y, 72, 16);
-                    ctx.fillStyle = '#8b4513';
-                    ctx.fillRect(x + 20, y + 20, 24, 12);
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '10px "Courier New"';
-                    ctx.fillText('SHOP', x + 24, y + 29);
-                    break;
-                case 'castle':
-                    ctx.fillStyle = '#696969';
-                    ctx.fillRect(x, y, 24, 80);
-                    ctx.fillRect(x + 72, y, 24, 80);
-                    ctx.fillStyle = '#808080';
-                    ctx.fillRect(x + 16, y + 16, 64, 64);
-                    ctx.fillStyle = '#654321';
-                    ctx.fillRect(x + 36, y + 48, 24, 32);
-                    for (let i = 0; i < 4; i++) {
-                        ctx.fillStyle = '#696969';
-                        ctx.fillRect(x + i * 24, y - 8, 12, 12);
-                    }
-                    break;
-            }
-            if (building.owner) {
-                ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                ctx.fillRect(x - 10, y - 20, building.type === 'castle' ? 116 : 68, 14);
-                ctx.fillStyle = '#fff';
-                ctx.font = '10px "Courier New"';
-                ctx.textAlign = 'center';
-                ctx.fillText(building.owner, x + (building.type === 'castle' ? 48 : 24), y - 9);
-                ctx.textAlign = 'left';
-            }
-        }
-
-        function drawPlayer(x, y, character, name, isLocal) {
-            const c = character;
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(x + 4, y + 28, 16, 4);
-            ctx.fillStyle = c.shoesColor;
-            ctx.fillRect(x + 4, y + 24, 6, 8);
-            ctx.fillRect(x + 14, y + 24, 6, 8);
-            ctx.fillStyle = c.pantsColor;
-            ctx.fillRect(x + 4, y + 16, 6, 8);
-            ctx.fillRect(x + 14, y + 16, 6, 8);
-            ctx.fillStyle = c.shirtColor;
-            ctx.fillRect(x + 2, y + 8, 20, 10);
-            ctx.fillRect(x, y + 10, 2, 8);
-            ctx.fillRect(x + 22, y + 10, 2, 8);
-            ctx.fillStyle = c.skinColor;
-            ctx.fillRect(x + 8, y + 8, 8, 4);
-            ctx.fillRect(x + 6, y, 12, 10);
-            ctx.fillStyle = c.hairColor;
-            if (c.hairStyle === 'short') {
-                ctx.fillRect(x + 6, y - 2, 12, 4);
-            } else if (c.hairStyle === 'long') {
-                ctx.fillRect(x + 6, y - 2, 12, 6);
-                ctx.fillRect(x + 4, y + 2, 16, 4);
-            } else if (c.hairStyle === 'spiky') {
-                ctx.fillRect(x + 6, y - 4, 4, 4);
-                ctx.fillRect(x + 10, y - 4, 4, 4);
-                ctx.fillRect(x + 14, y - 4, 4, 4);
-            }
-            ctx.fillStyle = '#000';
-            ctx.fillRect(x + 8, y + 4, 2, 2);
-            ctx.fillRect(x + 14, y + 4, 2, 2);
-            if (c.accessory === 'hat') {
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(x + 4, y - 4, 16, 4);
-                ctx.fillRect(x + 6, y - 2, 12, 2);
-            } else if (c.accessory === 'crown') {
-                ctx.fillStyle = '#FFD700';
-                ctx.fillRect(x + 6, y - 4, 12, 4);
-                ctx.fillRect(x + 8, y - 6, 2, 2);
-                ctx.fillRect(x + 11, y - 6, 2, 2);
-                ctx.fillRect(x + 14, y - 6, 2, 2);
-            } else if (c.accessory === 'helmet') {
-                ctx.fillStyle = '#C0C0C0';
-                ctx.fillRect(x + 4, y - 2, 16, 6);
-                ctx.fillRect(x + 6, y + 4, 12, 4);
-            }
-            ctx.fillStyle = 'rgba(0,0,0,0.7)';
-            ctx.fillRect(x - 10, y - 16, name.length * 6 + 8, 14);
-            ctx.fillStyle = isLocal ? '#3498db' : '#fff';
-            ctx.font = '10px "Courier New"';
+    });
+    
+    // Renderizar otros jugadores
+    players.forEach((player, id) => {
+        const screenX = player.x - camera.x;
+        const screenY = player.y - camera.y;
+        if (screenX > -50 && screenX < camera.width && screenY > -50 && screenY < camera.height) {
+            drawPlayer(ctx, player, screenX, screenY);
+            
+            // Nombre del jugador
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.font = '12px "Courier New"';
             ctx.textAlign = 'center';
-            ctx.fillText(name, x + 12, y - 5);
-            ctx.textAlign = 'left';
+            ctx.strokeText(player.username, screenX + TILE_SIZE / 2, screenY - 5);
+            ctx.fillText(player.username, screenX + TILE_SIZE / 2, screenY - 5);
         }
+    });
+    
+    // Renderizar jugador local
+    const playerScreenX = localPlayer.x - camera.x;
+    const playerScreenY = localPlayer.y - camera.y;
+    drawPlayer(ctx, localPlayer, playerScreenX, playerScreenY);
+    
+    // Nombre del jugador
+    ctx.fillStyle = '#ffff00';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.font = 'bold 12px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.strokeText(currentUsername, playerScreenX + TILE_SIZE / 2, playerScreenY - 5);
+    ctx.fillText(currentUsername, playerScreenX + TILE_SIZE / 2, playerScreenY - 5);
+}
 
-        function drawBuildPreview() {
-            if (!currentBuild) return;
-            const gridX = Math.floor((worldX) / 32) * 32;
-            const gridY = Math.floor((worldY) / 32) * 32;
-            ctx.save();
-            ctx.translate(-camera.x, -camera.y);
-            ctx.globalAlpha = 0.6;
-            const tempBuilding = { type: currentBuild, x: gridX, y: gridY };
-            drawBuilding(tempBuilding);
-            ctx.restore();
-        }
-
-        function setupControls() {
-            window.addEventListener('keydown', (e) => { keys[e.key] = true; });
-            window.addEventListener('keyup', (e) => { keys[e.key] = false; });
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                mouseX = e.clientX - rect.left;
-                mouseY = e.clientY - rect.top;
-                worldX = mouseX + camera.x;
-                worldY = mouseY + camera.y;
-            });
-            canvas.addEventListener('click', handleCanvasClick);
-        }
-
-        async function handleCanvasClick(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left + camera.x;
-            const clickY = e.clientY - rect.top + camera.y;
-            if (currentTool === 'build' && currentBuild) {
-                await placeBuilding(clickX, clickY);
-            } else if (currentTool === 'magic' && selectedPowers.length > 0) {
-                useMagic(clickX, clickY);
-            } else if (currentTool === 'attack') {
-                attack(clickX, clickY);
-            } else if (currentTool === 'move') {
-                resources.forEach((resource, index) => {
-                    const dist = Math.sqrt((clickX - resource.x) ** 2 + (clickY - resource.y) ** 2);
-                    if (dist < 32) collectResource(resource, index);
-                });
+// ==================== DIBUJO DE TILES (ESTILO WORLDBOX) ====================
+function drawTile(context, tile, x, y) {
+    const size = TILE_SIZE;
+    
+    switch(tile.type) {
+        case 'grass':
+            // Césped verde con textura
+            context.fillStyle = '#6b8e23';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#7fa32e';
+            context.fillRect(x + 2, y + 2, size - 4, size - 4);
+            // Detalles de hierba
+            for (let i = 0; i < 3; i++) {
+                context.fillStyle = '#5a7a1f';
+                context.fillRect(x + Math.random() * size, y + Math.random() * size, 2, 2);
             }
-        }
+            break;
+            
+        case 'dirt':
+            // Tierra marrón
+            context.fillStyle = '#8b7355';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#9b8365';
+            context.fillRect(x + 2, y + 2, size - 4, size - 4);
+            break;
+            
+        case 'water':
+            // Agua azul animada
+            const waterShade = Math.sin(Date.now() / 500 + x + y) * 20 + 70;
+            context.fillStyle = `rgb(64, 164, ${waterShade + 210})`;
+            context.fillRect(x, y, size, size);
+            context.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            context.fillRect(x + 4, y + 4, size - 8, size - 8);
+            break;
+            
+        case 'tree':
+            // Césped base
+            context.fillStyle = '#6b8e23';
+            context.fillRect(x, y, size, size);
+            // Tronco
+            context.fillStyle = '#654321';
+            context.fillRect(x + 6, y + 8, 4, 8);
+            // Copa del árbol
+            context.fillStyle = '#228b22';
+            context.fillRect(x + 2, y + 2, 12, 10);
+            context.fillStyle = '#2ea02e';
+            context.fillRect(x + 4, y + 4, 8, 6);
+            break;
+            
+        case 'stone':
+            // Césped con roca
+            context.fillStyle = '#6b8e23';
+            context.fillRect(x, y, size, size);
+            // Roca
+            context.fillStyle = '#808080';
+            context.fillRect(x + 3, y + 5, 10, 8);
+            context.fillStyle = '#a0a0a0';
+            context.fillRect(x + 4, y + 6, 8, 6);
+            context.fillStyle = '#606060';
+            context.fillRect(x + 3, y + 11, 10, 2);
+            break;
+    }
+}
 
-        async function placeBuilding(x, y) {
-            const gridX = Math.floor(x / 32) * 32;
-            const gridY = Math.floor(y / 32) * 32;
-            const costs = {
-                house: { wood: 20, stone: 10 },
-                tower: { wood: 15, stone: 25 },
-                wall: { stone: 15 },
-                farm: { wood: 10 },
-                shop: { wood: 30, gold: 50 },
-                castle: { wood: 50, stone: 100 }
-            };
-            const cost = costs[currentBuild];
-            if (!cost) return;
-            if ((cost.wood && playerData.wood < cost.wood) ||
-                (cost.stone && playerData.stone < cost.stone) ||
-                (cost.gold && playerData.gold < cost.gold)) {
-                showNotification('❌ No tienes suficientes recursos', 'error');
-                return;
+// ==================== DIBUJO DE JUGADORES ====================
+function drawPlayer(context, player, x, y) {
+    const size = TILE_SIZE;
+    const custom = player.customization;
+    
+    // Sombra
+    context.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    context.fillRect(x + 2, y + size - 2, size - 4, 3);
+    
+    // Piernas
+    context.fillStyle = custom.clothesColor;
+    context.fillRect(x + 4, y + 10, 3, 6);
+    context.fillRect(x + 9, y + 10, 3, 6);
+    
+    // Cuerpo
+    context.fillStyle = custom.clothesColor;
+    context.fillRect(x + 3, y + 4, 10, 7);
+    
+    // Brazos
+    context.fillStyle = custom.skinColor;
+    context.fillRect(x + 1, y + 5, 2, 5);
+    context.fillRect(x + 13, y + 5, 2, 5);
+    
+    // Cabeza
+    context.fillStyle = custom.skinColor;
+    context.fillRect(x + 4, y + 1, 8, 6);
+    
+    // Ojos
+    context.fillStyle = '#000';
+    context.fillRect(x + 5, y + 3, 2, 1);
+    context.fillRect(x + 9, y + 3, 2, 1);
+    
+    // Cabello
+    if (custom.hairStyle === 'short') {
+        context.fillStyle = custom.hairColor;
+        context.fillRect(x + 4, y, 8, 2);
+    } else if (custom.hairStyle === 'long') {
+        context.fillStyle = custom.hairColor;
+        context.fillRect(x + 4, y, 8, 2);
+        context.fillRect(x + 3, y + 1, 2, 4);
+        context.fillRect(x + 11, y + 1, 2, 4);
+    }
+    
+    // Efecto de poder mágico
+    if (custom.magicPower !== 'none') {
+        const time = Date.now() / 200;
+        const offset = Math.sin(time) * 2;
+        
+        let color;
+        switch(custom.magicPower) {
+            case 'fire': color = '#ff4500'; break;
+            case 'water': color = '#1e90ff'; break;
+            case 'earth': color = '#8b4513'; break;
+            case 'wind': color = '#e0e0e0'; break;
+        }
+        
+        context.fillStyle = color;
+        context.globalAlpha = 0.6;
+        context.fillRect(x - 2 + offset, y + 2, 2, 2);
+        context.fillRect(x + size, y + 4 - offset, 2, 2);
+        context.globalAlpha = 1;
+    }
+}
+
+// ==================== DIBUJO DE NPCs ====================
+function drawNPC(context, npc, x, y) {
+    const size = TILE_SIZE;
+    
+    if (npc.type === 'villager') {
+        // Aldeano simple
+        context.fillStyle = '#d2b48c';
+        context.fillRect(x + 3, y + 4, 10, 10);
+        context.fillStyle = '#8b7355';
+        context.fillRect(x + 4, y + 1, 8, 6);
+        context.fillStyle = '#000';
+        context.fillRect(x + 5, y + 3, 2, 1);
+        context.fillRect(x + 9, y + 3, 2, 1);
+    } else if (npc.type === 'merchant') {
+        // Mercader
+        context.fillStyle = '#800080';
+        context.fillRect(x + 3, y + 4, 10, 10);
+        context.fillStyle = '#daa520';
+        context.fillRect(x + 4, y + 1, 8, 6);
+        context.fillStyle = '#000';
+        context.fillRect(x + 5, y + 3, 2, 1);
+        context.fillRect(x + 9, y + 3, 2, 1);
+        // Sombrero
+        context.fillStyle = '#8b4513';
+        context.fillRect(x + 3, y - 1, 10, 2);
+    }
+}
+
+// ==================== DIBUJO DE EDIFICIOS ====================
+function drawBuilding(context, type, x, y, size) {
+    switch(type) {
+        case 'wall':
+            context.fillStyle = '#8b7355';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#654321';
+            context.fillRect(x + 2, y + 2, size - 4, size - 4);
+            break;
+            
+        case 'door':
+            context.fillStyle = '#654321';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#8b7355';
+            context.fillRect(x + 4, y + 4, size - 8, size - 8);
+            break;
+            
+        case 'chest':
+            context.fillStyle = '#8b4513';
+            context.fillRect(x, y, size, size * 0.7);
+            context.fillStyle = '#654321';
+            context.fillRect(x + 2, y + 2, size - 4, size * 0.7 - 4);
+            context.fillStyle = '#ffd700';
+            context.fillRect(x + size / 2 - 2, y + size * 0.35, 4, 4);
+            break;
+            
+        case 'furnace':
+            context.fillStyle = '#696969';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#ff4500';
+            context.fillRect(x + size / 4, y + size / 3, size / 2, size / 3);
+            break;
+            
+        case 'bed':
+            context.fillStyle = '#8b4513';
+            context.fillRect(x, y, size, size * 0.8);
+            context.fillStyle = '#dc143c';
+            context.fillRect(x + 2, y + 2, size - 4, size * 0.8 - 4);
+            break;
+            
+        case 'table':
+            context.fillStyle = '#8b4513';
+            context.fillRect(x, y + size * 0.3, size, size * 0.4);
+            context.fillRect(x + 2, y + size * 0.7, 4, size * 0.3);
+            context.fillRect(x + size - 6, y + size * 0.7, 4, size * 0.3);
+            break;
+            
+        case 'chair':
+            context.fillStyle = '#8b4513';
+            context.fillRect(x + size * 0.2, y + size * 0.5, size * 0.6, size * 0.3);
+            context.fillRect(x + size * 0.2, y + size * 0.8, 4, size * 0.2);
+            context.fillRect(x + size * 0.6, y + size * 0.8, 4, size * 0.2);
+            context.fillRect(x + size * 0.2, y, size * 0.6, size * 0.3);
+            break;
+    }
+}
+
+// ==================== DIBUJO DE ITEMS ====================
+function drawItem(context, type, x, y, size) {
+    switch(type) {
+        case 'wood':
+            context.fillStyle = '#8b4513';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#654321';
+            for (let i = 0; i < 3; i++) {
+                context.fillRect(x + i * 4, y, 2, size);
             }
-            if (cost.wood) playerData.wood -= cost.wood;
-            if (cost.stone) playerData.stone -= cost.stone;
-            if (cost.gold) playerData.gold -= cost.gold;
-            const building = {
-                type: currentBuild,
-                x: gridX,
-                y: gridY,
-                owner: currentUsername,
-                id: Date.now()
-            };
-            buildings.push(building);
-            updateResourceDisplay();
-            showNotification(`✅ ${currentBuild} construido`, 'success');
-            if (currentUser) {
-                await updateDoc(doc(db, "players", currentUser.uid), {
-                    wood: playerData.wood,
-                    stone: playerData.stone,
-                    gold: playerData.gold
-                });
-            }
-        }
+            break;
+            
+        case 'stone':
+            context.fillStyle = '#808080';
+            context.fillRect(x, y, size, size);
+            context.fillStyle = '#a0a0a0';
+            context.fillRect(x + 2, y + 2, size - 4, size - 4);
+            break;
+            
+        case 'sword':
+            context.fillStyle = '#c0c0c0';
+            context.fillRect(x + size * 0.4, y, size * 0.2, size * 0.7);
+            context.fillStyle = '#8b4513';
+            context.fillRect(x + size * 0.3, y + size * 0.7, size * 0.4, size * 0.3);
+            break;
+            
+        case 'pickaxe':
+            context.fillStyle = '#708090';
+            context.fillRect(x + 2, y, size - 4, size * 0.3);
+            context.fillStyle = '#8b4513';
+            context.fillRect(x + size * 0.45, y + size * 0.3, size * 0.1, size * 0.7);
+            break;
+            
+        case 'food':
+            context.fillStyle = '#ff6347';
+            context.fillRect(x + size * 0.2, y + size * 0.2, size * 0.6, size * 0.6);
+            context.fillStyle = '#228b22';
+            context.fillRect(x + size * 0.4, y + size * 0.1, size * 0.2, size * 0.2);
+            break;
+            
+        case 'armor':
+            context.fillStyle = '#4682b4';
+            context.fillRect(x + size * 0.2, y + size * 0.2, size * 0.6, size * 0.6);
+            context.fillStyle = '#b0c4de';
+            context.fillRect(x + size * 0.3, y + size * 0.3, size * 0.4, size * 0.4);
+            break;
+            
+        case 'bow':
+            context.fillStyle = '#8b4513';
+            context.fillRect(x + size * 0.4, y, size * 0.1, size);
+            context.strokeStyle = '#654321';
+            context.lineWidth = 2;
+            context.beginPath();
+            context.arc(x + size * 0.45, y + size * 0.5, size * 0.4, -Math.PI / 2, Math.PI / 2);
+            context.stroke();
+            break;
+            
+        case 'potion':
+            context.fillStyle = '#8b008b';
+            context.fillRect(x + size * 0.3, y + size * 0.2, size * 0.4, size * 0.6);
+            context.fillStyle = '#ff00ff';
+            context.fillRect(x + size * 0.35, y + size * 0.25, size * 0.3, size * 0.5);
+            context.fillStyle = '#8b008b';
+            context.fillRect(x + size * 0.35, y + size * 0.1, size * 0.3, size * 0.15);
+            break;
+    }
+}
 
-        function collectResource(resource, index) {
-            if (resource.type === 'tree') {
-                playerData.wood += 10;
-                showNotification('🪵 +10 Madera', 'success');
-            } else if (resource.type === 'rock') {
-                playerData.stone += 10;
-                showNotification('🪨 +10 Piedra', 'success');
-            }
-            resources.splice(index, 1);
-            updateResourceDisplay();
+// ==================== INTERACCIONES ====================
+function handleWorldClick(worldX, worldY) {
+    const tileX = Math.floor(worldX / TILE_SIZE);
+    const tileY = Math.floor(worldY / TILE_SIZE);
+    
+    if (tileX < 0 || tileX >= WORLD_WIDTH || tileY < 0 || tileY >= WORLD_HEIGHT) return;
+    
+    const tile = worldData.tiles[tileY][tileX];
+    
+    // Recolectar recursos
+    if (tile.resource) {
+        const item = localPlayer.inventory.find(i => i.type === tile.resource);
+        if (item) {
+            item.count++;
+        } else {
+            localPlayer.inventory.push({ type: tile.resource, count: 1 });
         }
+        
+        tile.type = 'grass';
+        tile.walkable = true;
+        delete tile.resource;
+        
+        setupInventory();
+        showNotification(`+1 ${tile.resource}`);
+    }
+}
 
-        function useMagic(x, y) {
-            if (selectedPowers.length === 0) {
-                showNotification('❌ No tienes poderes seleccionados', 'error');
-                return;
-            }
-            const power = selectedPowers[0];
-            const manaCosts = { fire: 30, ice: 30, heal: 20, lightning: 40, teleport: 50, shield: 25 };
-            const cost = manaCosts[power];
-            if (playerData.mana < cost) {
-                showNotification('❌ No tienes suficiente maná', 'error');
-                return;
-            }
-            playerData.mana -= cost;
-            switch(power) {
-                case 'fire':
-                    createMagicEffect(x, y, '🔥', '#ff4500');
-                    break;
-                case 'ice':
-                    createMagicEffect(x, y, '❄️', '#00bfff');
-                    break;
-                case 'heal':
-                    playerData.health = Math.min(100, playerData.health + 30);
-                    createMagicEffect(playerData.x, playerData.y, '💚', '#00ff00');
-                    showNotification('💚 +30 Salud', 'success');
-                    break;
-                case 'lightning':
-                    createMagicEffect(x, y, '⚡', '#ffff00');
-                    break;
-                case 'teleport':
-                    playerData.x = x;
-                    playerData.y = y;
-                    createMagicEffect(x, y, '🌀', '#9370db');
-                    showNotification('🌀 Teletransportado', 'success');
-                    break;
-                case 'shield':
-                    createMagicEffect(playerData.x, playerData.y, '🛡️', '#1e90ff');
-                    showNotification('🛡️ Escudo activado', 'success');
-                    break;
-            }
-            updateResourceDisplay();
-        }
-
-        function createMagicEffect(x, y, emoji, color) {
-            const effect = { x: x, y: y, emoji: emoji, color: color, life: 60, startLife: 60 };
-            const interval = setInterval(() => {
-                effect.life--;
-                if (effect.life <= 0) {
-                    clearInterval(interval);
-                }
-            }, 16);
-        }
-
-        function attack(x, y) {
-            animals.forEach((animal, index) => {
-                const dist = Math.sqrt((x - animal.x) ** 2 + (y - animal.y) ** 2);
-                if (dist < 32) {
-                    animals.splice(index, 1);
-                    playerData.food += 10;
-                    showNotification('🍖 +10 Comida', 'success');
-                    updateResourceDisplay();
-                }
-            });
-        }
-
-        function updateResourceDisplay() {
-            document.getElementById('gold').textContent = playerData.gold;
-            document.getElementById('wood').textContent = playerData.wood;
-            document.getElementById('stone').textContent = playerData.stone;
-            document.getElementById('food').textContent = playerData.food;
-            document.getElementById('mana').textContent = playerData.mana;
-        }
-
-        window.selectTool = function(tool) {
-            currentTool = tool;
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            if (tool === 'build') {
-                document.getElementById('buildMenu').style.display = 'block';
+function interact() {
+    // Interactuar con NPCs cercanos
+    worldData.npcs.forEach(npc => {
+        const dist = Math.sqrt((npc.x - localPlayer.x) ** 2 + (npc.y - localPlayer.y) ** 2);
+        if (dist < 30) {
+            if (npc.type === 'merchant') {
+                toggleShopMenu();
             } else {
-                document.getElementById('buildMenu').style.display = 'none';
-            }
-        };
-
-        window.selectBuild = function(type) {
-            currentBuild = type;
-            document.querySelectorAll('.build-item').forEach(item => item.classList.remove('selected'));
-            event.target.closest('.build-item').classList.add('selected');
-        };
-
-        window.openCharacterMenu = function() {
-            document.getElementById('characterMenu').style.display = 'block';
-            loadCharacterPreview();
-        };
-
-        window.closeCharacterMenu = function() {
-            document.getElementById('characterMenu').style.display = 'none';
-        };
-
-        window.updateCharacter = function() {
-            playerData.character = {
-                skinColor: document.getElementById('skinColor').value,
-                hairColor: document.getElementById('hairColor').value,
-                hairStyle: document.getElementById('hairStyle').value,
-                shirtColor: document.getElementById('shirtColor').value,
-                pantsColor: document.getElementById('pantsColor').value,
-                shoesColor: document.getElementById('shoesColor').value,
-                accessory: document.getElementById('accessory').value
-            };
-            loadCharacterPreview();
-        };
-
-        function loadCharacterPreview() {
-            const previewCanvas = document.getElementById('characterPreview');
-            const previewCtx = previewCanvas.getContext('2d');
-            previewCtx.imageSmoothingEnabled = false;
-            previewCtx.fillStyle = '#000';
-            previewCtx.fillRect(0, 0, 200, 200);
-            previewCtx.save();
-            previewCtx.translate(100, 100);
-            previewCtx.scale(4, 4);
-            const c = playerData.character;
-            const x = -12;
-            const y = -16;
-            previewCtx.fillStyle = 'rgba(0,0,0,0.3)';
-            previewCtx.fillRect(x + 4, y + 28, 16, 4);
-            previewCtx.fillStyle = c.shoesColor;
-            previewCtx.fillRect(x + 4, y + 24, 6, 8);
-            previewCtx.fillRect(x + 14, y + 24, 6, 8);
-            previewCtx.fillStyle = c.pantsColor;
-            previewCtx.fillRect(x + 4, y + 16, 6, 8);
-            previewCtx.fillRect(x + 14, y + 16, 6, 8);
-            previewCtx.fillStyle = c.shirtColor;
-            previewCtx.fillRect(x + 2, y + 8, 20, 10);
-            previewCtx.fillRect(x, y + 10, 2, 8);
-            previewCtx.fillRect(x + 22, y + 10, 2, 8);
-            previewCtx.fillStyle = c.skinColor;
-            previewCtx.fillRect(x + 8, y + 8, 8, 4);
-            previewCtx.fillRect(x + 6, y, 12, 10);
-            previewCtx.fillStyle = c.hairColor;
-            if (c.hairStyle === 'short') {
-                previewCtx.fillRect(x + 6, y - 2, 12, 4);
-            } else if (c.hairStyle === 'long') {
-                previewCtx.fillRect(x + 6, y - 2, 12, 6);
-                previewCtx.fillRect(x + 4, y + 2, 16, 4);
-            } else if (c.hairStyle === 'spiky') {
-                previewCtx.fillRect(x + 6, y - 4, 4, 4);
-                previewCtx.fillRect(x + 10, y - 4, 4, 4);
-                previewCtx.fillRect(x + 14, y - 4, 4, 4);
-            }
-            previewCtx.fillStyle = '#000';
-            previewCtx.fillRect(x + 8, y + 4, 2, 2);
-            previewCtx.fillRect(x + 14, y + 4, 2, 2);
-            if (c.accessory === 'hat') {
-                previewCtx.fillStyle = '#8B4513';
-                previewCtx.fillRect(x + 4, y - 4, 16, 4);
-                previewCtx.fillRect(x + 6, y - 2, 12, 2);
-            } else if (c.accessory === 'crown') {
-                previewCtx.fillStyle = '#FFD700';
-                previewCtx.fillRect(x + 6, y - 4, 12, 4);
-                previewCtx.fillRect(x + 8, y - 6, 2, 2);
-                previewCtx.fillRect(x + 11, y - 6, 2, 2);
-                previewCtx.fillRect(x + 14, y - 6, 2, 2);
-            } else if (c.accessory === 'helmet') {
-                previewCtx.fillStyle = '#C0C0C0';
-                previewCtx.fillRect(x + 4, y - 2, 16, 6);
-                previewCtx.fillRect(x + 6, y + 4, 12, 4);
-            }
-            previewCtx.restore();
-        }
-
-        window.saveCharacter = async function() {
-            if (currentUser) {
-                await updateDoc(doc(db, "players", currentUser.uid), {
-                    character: playerData.character
-                });
-                showNotification('✅ Personaje guardado', 'success');
-                closeCharacterMenu();
-            }
-        };
-
-        window.selectPower = function(power) {
-            if (selectedPowers.includes(power)) {
-                selectedPowers = selectedPowers.filter(p => p !== power);
-                event.target.classList.remove('selected');
-            } else {
-                if (selectedPowers.length >= 3) {
-                    showNotification('❌ Solo puedes tener 3 poderes activos', 'error');
-                    return;
-                }
-                selectedPowers.push(power);
-                event.target.classList.add('selected');
-            }
-        };
-
-        window.toggleAllianceMenu = function() {
-            const menu = document.getElementById('allianceMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-            if (menu.style.display === 'block') {
-                loadAllianceList();
-            }
-        };
-
-        function loadAllianceList() {
-            const list = document.getElementById('allianceList');
-            list.innerHTML = '';
-            Object.values(players).forEach(player => {
-                if (player.alliance === playerData.alliance && player.alliance) {
-                    const div = document.createElement('div');
-                    div.className = 'alliance-player';
-                    div.innerHTML = `
-                        <span>👤 ${player.username}</span>
-                        <span style="color: #2ecc71;">●</span>
-                    `;
-                    list.appendChild(div);
-                }
-            });
-        }
-
-        window.createAlliance = async function() {
-            const allianceName = prompt('Nombre de la alianza:');
-            if (allianceName && allianceName.trim()) {
-                playerData.alliance = allianceName;
-                if (currentUser) {
-                    await updateDoc(doc(db, "players", currentUser.uid), {
-                        alliance: allianceName
-                    });
-                }
-                showNotification(`🤝 Alianza "${allianceName}" creada`, 'success');
-                loadAllianceList();
-            }
-        };
-
-        window.sendMessage = async function() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (message && currentUser) {
-                const chatMessage = {
-                    username: currentUsername,
-                    message: message,
-                    timestamp: Date.now()
-                };
-                addChatMessage(chatMessage);
-                input.value = '';
-                await setDoc(doc(db, "chat", Date.now().toString()), chatMessage);
-            }
-        };
-
-        function addChatMessage(data) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'chat-message';
-            messageDiv.innerHTML = `<span class="username">${data.username}:</span> ${data.message}`;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            while (messagesDiv.children.length > 50) {
-                messagesDiv.removeChild(messagesDiv.firstChild);
+                showNotification(`${npc.type}: ¡Hola, aventurero!`);
             }
         }
+    });
+}
 
-        const chatRef = collection(db, "chat");
-        onSnapshot(chatRef, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    addChatMessage(change.doc.data());
-                }
-            });
+function attack() {
+    // Atacar enemigos cercanos
+    worldData.npcs.forEach(npc => {
+        const dist = Math.sqrt((npc.x - localPlayer.x) ** 2 + (npc.y - localPlayer.y) ** 2);
+        if (dist < 40) {
+            npc.health -= 10;
+            showNotification('¡Golpe! -10 HP');
+            
+            if (npc.health <= 0) {
+                worldData.npcs = worldData.npcs.filter(n => n.id !== npc.id);
+                localPlayer.gold += 10;
+                updateHUD();
+                showNotification('+10 Oro');
+            }
+        }
+    });
+}
+
+function placeBuilding(type, cost) {
+    const woodItem = localPlayer.inventory.find(i => i.type === 'wood');
+    
+    if (!woodItem || woodItem.count < cost) {
+        showNotification('No tienes suficiente madera');
+        return;
+    }
+    
+    woodItem.count -= cost;
+    if (woodItem.count === 0) {
+        localPlayer.inventory = localPlayer.inventory.filter(i => i.type !== 'wood');
+    }
+    
+    worldData.buildings.push({
+        type: type,
+        x: localPlayer.x,
+        y: localPlayer.y,
+        owner: currentUser.uid
+    });
+    
+    setupInventory();
+    toggleBuildMenu();
+    showNotification(`${type} construido!`);
+}
+
+function buyItem(type, price) {
+    if (localPlayer.gold < price) {
+        showNotification('No tienes suficiente oro');
+        return;
+    }
+    
+    localPlayer.gold -= price;
+    
+    const item = localPlayer.inventory.find(i => i.type === type);
+    if (item) {
+        item.count++;
+    } else {
+        localPlayer.inventory.push({ type: type, count: 1 });
+    }
+    
+    updateHUD();
+    setupInventory();
+    showNotification(`${type} comprado!`);
+}
+
+// ==================== PERSONALIZACIÓN ====================
+window.saveCharacter = async function() {
+    localPlayer.customization = {
+        skinColor: document.getElementById('skinColor').value,
+        clothesColor: document.getElementById('clothesColor').value,
+        hairStyle: document.getElementById('hairStyle').value,
+        hairColor: document.getElementById('hairColor').value,
+        magicPower: document.getElementById('magicPower').value
+    };
+    
+    if (currentUser) {
+        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+            customization: localPlayer.customization
         });
+    }
+    
+    showNotification('Personaje guardado!');
+    toggleCharacterMenu();
+};
 
-        function setupMobileControls() {
-            const joystickBase = document.getElementById('joystickBase');
-            const joystickStick = document.getElementById('joystickStick');
-            let joystickActive = false;
-            let joystickCenter = { x: 0, y: 0 };
-            
-            joystickBase.addEventListener('touchstart', (e) => {
-                joystickActive = true;
-                const rect = joystickBase.getBoundingClientRect();
-                joystickCenter = {
-                    x: rect.left + rect.width / 2,
-                    y: rect.top + rect.height / 2
-                };
-            });
-            
-            joystickBase.addEventListener('touchmove', (e) => {
-                if (!joystickActive) return;
-                e.preventDefault();
-                const touch = e.touches[0];
-                const dx = touch.clientX - joystickCenter.x;
-                const dy = touch.clientY - joystickCenter.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const maxDistance = 45;
-                if (distance > maxDistance) {
-                    const angle = Math.atan2(dy, dx);
-                    joystickStick.style.left = `${50 + Math.cos(angle) * maxDistance}%`;
-                    joystickStick.style.top = `${50 + Math.sin(angle) * maxDistance}%`;
-                } else {
-                    joystickStick.style.left = `${50 + (dx / maxDistance) * maxDistance}%`;
-                    joystickStick.style.top = `${50 + (dy / maxDistance) * maxDistance}%`;
-                }
-                keys['ArrowUp'] = dy < -10;
-                keys['ArrowDown'] = dy > 10;
-                keys['ArrowLeft'] = dx < -10;
-                keys['ArrowRight'] = dx > 10;
-            });
-            
-            joystickBase.addEventListener('touchend', () => {
-                joystickActive = false;
-                joystickStick.style.left = '50%';
-                joystickStick.style.top = '50%';
-                keys['ArrowUp'] = false;
-                keys['ArrowDown'] = false;
-                keys['ArrowLeft'] = false;
-                keys['ArrowRight'] = false;
-            });
-        }
+function updateCharacterPreview() {
+    const preview = document.getElementById('charPreview');
+    const pctx = preview.getContext('2d');
+    pctx.imageSmoothingEnabled = false;
+    
+    pctx.clearRect(0, 0, 128, 128);
+    pctx.fillStyle = '#6b8e23';
+    pctx.fillRect(0, 0, 128, 128);
+    
+    pctx.save();
+    pctx.translate(48, 48);
+    pctx.scale(2, 2);
+    
+    const tempCustom = {
+        skinColor: document.getElementById('skinColor').value,
+        clothesColor: document.getElementById('clothesColor').value,
+        hairStyle: document.getElementById('hairStyle').value,
+        hairColor: document.getElementById('hairColor').value,
+        magicPower: document.getElementById('magicPower').value
+    };
+    
+    drawPlayer(pctx, { customization: tempCustom }, 0, 0);
+    pctx.restore();
+}
 
-        window.mobileAction = function(action) {
-            if (action === 'interact') {
-                const clickEvent = new MouseEvent('click', {
-                    clientX: playerData.x - camera.x + canvas.getBoundingClientRect().left,
-                    clientY: playerData.y - camera.y + canvas.getBoundingClientRect().top
-                });
-                canvas.dispatchEvent(clickEvent);
-            } else if (action === 'magic') {
-                selectTool('magic');
-            } else if (action === 'attack') {
-                selectTool('attack');
-            }
-        };
+document.getElementById('skinColor')?.addEventListener('change', updateCharacterPreview);
+document.getElementById('clothesColor')?.addEventListener('change', updateCharacterPreview);
+document.getElementById('hairStyle')?.addEventListener('change', updateCharacterPreview);
+document.getElementById('hairColor')?.addEventListener('change', updateCharacterPreview);
+document.getElementById('magicPower')?.addEventListener('change', updateCharacterPreview);
 
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.textContent = message;
-            if (type === 'error') {
-                notification.style.background = 'rgba(231, 76, 60, 0.95)';
-                notification.style.borderColor = '#c0392b';
-            }
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
+// ==================== CHAT ====================
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    addChatMessage(currentUsername, message);
+    input.value = '';
+    
+    // Aquí podrías enviar el mensaje a Firebase para sincronización
+}
 
-        setInterval(() => {
-            if (playerData.mana < 100) {
-                playerData.mana = Math.min(100, playerData.mana + 1);
-                updateResourceDisplay();
-            }
-            buildings.forEach(building => {
-                if (building.type === 'shop' && building.owner === currentUsername) {
-                    playerData.gold += 1;
-                }
-            });
-            buildings.forEach(building => {
-                if (building.type === 'farm' && building.owner === currentUsername) {
-                    playerData.food += 1;
-                }
-            });
-            updateResourceDisplay();
-        }, 5000);
+function addChatMessage(username, message) {
+    const chatBox = document.getElementById('chatBox');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message';
+    msgDiv.innerHTML = `<span class="chat-player">${username}:</span> ${message}`;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-        setInterval(async () => {
-            if (currentUser) {
-                await updateDoc(doc(db, "players", currentUser.uid), {
-                    ...playerData,
-                    lastUpdate: Date.now()
-                });
-            }
-        }, 30000);
-
-        window.addEventListener('beforeunload', async () => {
-            if (currentUser) {
-                await updateDoc(doc(db, "players", currentUser.uid), {
-                    online: false
-                });
-            }
+// ==================== ALIANZAS ====================
+window.createAlliance = async function() {
+    const name = prompt('Nombre de la alianza:');
+    if (!name) return;
+    
+    localPlayer.alliance = {
+        name: name,
+        leader: currentUser.uid,
+        members: [currentUser.uid],
+        createdAt: Date.now()
+    };
+    
+    if (currentUser) {
+        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+            alliance: localPlayer.alliance
         });
+    }
+    
+    showNotification(`Alianza "${name}" creada!`);
+    updateAllianceInfo();
+};
 
-        setTimeout(() => {
-            const chatQuery = query(collection(db, "chat"), orderBy("timestamp", "desc"), limit(20));
-            getDocs(chatQuery).then((snapshot) => {
-                const messages = [];
-                snapshot.forEach((doc) => {
-                    messages.push(doc.data());
-                });
-                messages.reverse().forEach(msg => addChatMessage(msg));
-            });
-        }, 1000);
+function updateAllianceInfo() {
+    const info = document.getElementById('allianceInfo');
+    const members = document.getElementById('allianceMembers');
+    
+    if (localPlayer.alliance) {
+        info.innerHTML = `
+            <strong>Alianza: ${localPlayer.alliance.name}</strong><br>
+            Líder: ${localPlayer.alliance.leader === currentUser.uid ? 'Tú' : 'Otro'}<br>
+            Miembros: ${localPlayer.alliance.members.length}
+        `;
+        
+        members.innerHTML = '<h3>Miembros:</h3>';
+        localPlayer.alliance.members.forEach(memberId => {
+            const div = document.createElement('div');
+            div.className = 'member-item';
+            div.textContent = memberId === currentUser.uid ? currentUsername + ' (Tú)' : 'Miembro';
+            members.appendChild(div);
+        });
+    } else {
+        info.textContent = 'No tienes alianza';
+        members.innerHTML = '';
+    }
+}
 
-        setTimeout(async () => {
-            if (currentUser) {
-                const buildingsDoc = await getDoc(doc(db, "world", "buildings"));
-                if (buildingsDoc.exists()) {
-                    buildings = buildingsDoc.data().list || [];
-                }
-            }
-        }, 1500);
+function showPlayerInfo(player) {
+    showNotification(`${player.username} - Nivel: 1`);
+}
 
-        setInterval(async () => {
-            if (currentUser && buildings.length > 0) {
-                await setDoc(doc(db, "world", "buildings"), {
-                    list: buildings,
-                    lastUpdate: Date.now()
-                });
-            }
-        }, 60000);
+// ==================== NOTIFICACIONES ====================
+function showNotification(message) {
+    const container = document.getElementById('notifications');
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
 
+// ==================== CIERRE ====================
+window.addEventListener('beforeunload', async () => {
+    if (currentUser) {
+        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+            online: false
+        });
+    }
+});
+
+console.log('🌍 Pixel World cargado correctamente!');
     </script>
 </body>
 </html>
