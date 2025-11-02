@@ -567,7 +567,298 @@
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // Enhanced functions for games
+        // Enhanced drawPixelAlien with animation
+        function drawPixelAlien(x, y, size = 40, frame = 0) {
+            const basePixels = [
+                [0,0,1,1,1,1,1,1,1,1,0,0],
+                [0,1,1,1,1,1,1,1,1,1,1,0],
+                [1,1,0,1,1,1,1,1,1,0,1,1],
+                [1,1,0,1,1,1,1,1,1,0,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,0,0,0,0,0,0,1,1,1],
+                [1,1,1,0,0,0,0,0,0,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1],
+                [0,1,1,1,1,1,1,1,1,1,1,0],
+                [0,0,1,1,1,1,1,1,1,1,0,0]
+            ];
+
+            const pixelSize = size / 12;
+            basePixels.forEach((row, i) => {
+                row.forEach((pixel, j) => {
+                    if (pixel === 1) {
+                        ctx.fillStyle = '#00ff00';
+                        ctx.fillRect(x + j * pixelSize + Math.sin(frame + i * 0.2) * 0.5, y + i * pixelSize, pixelSize, pixelSize);
+                        
+                        // Sombra
+                        if (i < basePixels.length - 1 && j < row.length - 1) {
+                            if (basePixels[i + 1][j] === 0 || basePixels[i][j + 1] === 0) {
+                                ctx.fillStyle = '#00aa00';
+                                ctx.fillRect(x + j * pixelSize + Math.sin(frame + i * 0.2) * 0.5, y + i * pixelSize, pixelSize, pixelSize);
+                            }
+                        }
+                        
+                        // Highlight for depth
+                        if (i > 0 && j > 0 && basePixels[i - 1][j] === 0 || basePixels[i][j - 1] === 0) {
+                            ctx.fillStyle = '#80ff80';
+                            ctx.fillRect(x + j * pixelSize + Math.sin(frame + i * 0.2) * 0.5, y + i * pixelSize, pixelSize / 2, pixelSize / 2);
+                        }
+                    } else if (pixel === 0 && i >= 2 && i <= 3 && j >= 2 && j <= 3) {
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(x + j * pixelSize + Math.sin(frame + i * 0.2) * 0.5, y + i * pixelSize, pixelSize, pixelSize);
+                    } else if (pixel === 0 && i >= 2 && i <= 3 && j >= 8 && j <= 9) {
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(x + j * pixelSize + Math.sin(frame + i * 0.2) * 0.5, y + i * pixelSize, pixelSize, pixelSize);
+                    }
+                });
+            });
+        }
+
+        // Enhanced drawPixelCar with animation and details
+        function drawPixelCar(x, y, color = '#ff0000', isPlayer = false, frame = 0) {
+            const w = 30, h = 50;
+            
+            // Cuerpo with tilt and shadow
+            ctx.fillStyle = '#00000030';
+            ctx.fillRect(x + 8 + 2, y + 2, 14, 40);
+            ctx.fillRect(x + 5 + 2, y + 10 + 2, 20, 30);
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(x + 8 + Math.sin(frame) * 1, y, 14, 40);
+            ctx.fillRect(x + 5 + Math.sin(frame) * 1, y + 10, 20, 30);
+            
+            // Ventanas with reflection
+            ctx.fillStyle = isPlayer ? '#00ffff' : '#4a90e2';
+            ctx.fillRect(x + 10 + Math.sin(frame) * 1, y + 5, 10, 8);
+            ctx.fillRect(x + 10 + Math.sin(frame) * 1, y + 27, 10, 8);
+            
+            ctx.fillStyle = '#ffffff80';
+            ctx.fillRect(x + 11 + Math.sin(frame) * 1, y + 6, 8, 2);
+            ctx.fillRect(x + 11 + Math.sin(frame) * 1, y + 28, 8, 2);
+            
+            // Ruedas with rotation and details
+            ctx.fillStyle = '#000';
+            ctx.save();
+            ctx.translate(x + 2.5, y + 12);
+            ctx.rotate(frame * 0.5);
+            ctx.fillRect(-2.5, -4, 5, 8);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-1, -2, 2, 4);
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(x + 27.5, y + 12);
+            ctx.rotate(frame * 0.5);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-2.5, -4, 5, 8);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-1, -2, 2, 4);
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(x + 2.5, y + 38);
+            ctx.rotate(frame * 0.5);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-2.5, -4, 5, 8);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-1, -2, 2, 4);
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(x + 27.5, y + 38);
+            ctx.rotate(frame * 0.5);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-2.5, -4, 5, 8);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-1, -2, 2, 4);
+            ctx.restore();
+            
+            // Luces with glow
+            if (isPlayer) {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(x + 8 + Math.sin(frame) * 1, y + 42, 4, 3);
+                ctx.fillRect(x + 18 + Math.sin(frame) * 1, y + 42, 4, 3);
+                
+                ctx.fillStyle = '#ffff0080';
+                ctx.fillRect(x + 6 + Math.sin(frame) * 1, y + 40, 8, 7);
+                ctx.fillRect(x + 16 + Math.sin(frame) * 1, y + 40, 8, 7);
+            }
+        }
+
+        // Enhanced drawPixelRoad with parallax and more details
+        let roadOffset = 0;
+        function drawPixelRoad() {
+            roadOffset += 6;
+            // Fondo cielo con gradiente
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#001a3e');
+            gradient.addColorStop(1, '#1a1a2e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Césped with parallax and texture
+            for (let x = 0; x < 200; x += 20) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    ctx.fillStyle = (x + y + roadOffset / 2) % 40 === 0 ? '#00aa00' : '#008800';
+                    ctx.fillRect(x, y, 20, 20);
+                    if (Math.random() > 0.9) {
+                        ctx.fillStyle = '#00ff00';
+                        ctx.fillRect(x + 5, y + 5, 10, 10);
+                    }
+                }
+            }
+            for (let x = 600; x < 800; x += 20) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    ctx.fillStyle = (x + y + roadOffset / 2) % 40 === 0 ? '#00aa00' : '#008800';
+                    ctx.fillRect(x, y, 20, 20);
+                    if (Math.random() > 0.9) {
+                        ctx.fillStyle = '#00ff00';
+                        ctx.fillRect(x + 5, y + 5, 10, 10);
+                    }
+                }
+            }
+            
+            // Carretera with texture and cracks
+            ctx.fillStyle = '#333';
+            ctx.fillRect(200, 0, 400, canvas.height);
+            for (let x = 200; x < 600; x += 10) {
+                for (let y = 0; y < canvas.height; y += 10) {
+                    ctx.fillStyle = (x + y + roadOffset) % 20 === 0 ? '#444' : '#333';
+                    ctx.fillRect(x, y, 10, 10);
+                    if (Math.random() > 0.95) {
+                        ctx.fillStyle = '#222';
+                        ctx.fillRect(x + 2, y + 2, 6, 6);
+                    }
+                }
+            }
+            
+            // Líneas laterales with dash animation
+            ctx.fillStyle = '#fff';
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.fillRect(200, y + (roadOffset % 40), 8, 20);
+                ctx.fillRect(592, y + (roadOffset % 40), 8, 20);
+            }
+        }
+
+        // Enhanced drawPixelGround with details
+        function drawPixelGround() {
+            for (let x = 0; x < canvas.width; x += 20) {
+                for (let y = 0; y < canvas.height; y += 20) {
+                    const shade = Math.random() > 0.5 ? '#8b4513' : '#654321';
+                    ctx.fillStyle = shade;
+                    ctx.fillRect(x, y, 20, 20);
+                    // Add grass tufts
+                    if (Math.random() > 0.8) {
+                        ctx.fillStyle = '#228B22';
+                        ctx.fillRect(x + 4, y + 4, 12, 12);
+                        ctx.fillStyle = '#006400';
+                        ctx.fillRect(x + 6, y + 6, 8, 8);
+                    }
+                }
+            }
+        }
+
+        // Enhanced drawPixelSky with clouds and sun
+        function drawPixelSky(cameraX) {
+            // Cielo gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#5080ff');
+            gradient.addColorStop(1, '#80b0ff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Sun with glow
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(700, 100, 30, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffff0080';
+            ctx.beginPath();
+            ctx.arc(700, 100, 50, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Nubes pixeladas with movement
+            const clouds = [100, 300, 500, 700, 900, 1200, 1500];
+            clouds.forEach(cloudX => {
+                const x = (cloudX - cameraX * 0.3) % (canvas.width + 200);
+                drawPixelCloud(x, 50 + Math.sin(cloudX * 0.01) * 30);
+            });
+        }
+
+        // Enhanced drawPixelCloud with fluff
+        function drawPixelCloud(x, y) {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x, y + 8, 40, 16);
+            ctx.fillRect(x + 8, y, 24, 32);
+            ctx.fillRect(x - 8, y + 12, 16, 12);
+            ctx.fillRect(x + 40, y + 12, 16, 12);
+            // Add fluff
+            ctx.fillRect(x + 16, y - 4, 16, 8);
+            ctx.fillRect(x + 24, y + 32, 8, 4);
+            // Shadow
+            ctx.fillStyle = '#ddd';
+            ctx.fillRect(x + 4, y + 28, 32, 4);
+        }
+
+        // Enhanced drawPixelCharacter with animation
+        let characterFrames = [
+            // Frame 1
+            {
+                head: '#ffcc99',
+                eyes: '#000',
+                shirt: characterCustomization.shirtColor,
+                pants: characterCustomization.pantsColor,
+                shoes: characterCustomization.shoesColor
+            },
+            // Add more frames for walking, jumping, etc.
+            // Frame 2 (walking)
+            {
+                head: '#ffcc99',
+                eyes: '#000',
+                shirt: characterCustomization.shirtColor,
+                pants: characterCustomization.pantsColor,
+                shoes: characterCustomization.shoesColor
+            }
+        ];
+
+        function drawPixelCharacter(x, y, facing = 'right', frame = 0) {
+            const c = characterCustomization;
+            
+            // Shadow
+            ctx.fillStyle = '#00000030';
+            ctx.fillRect(x + 2, y + 34, 20, 6);
+            
+            // Zapatos with motion
+            ctx.fillStyle = c.shoesColor;
+            ctx.fillRect(x + 4, y + 28 + Math.sin(frame) * 2, 6, 4);
+            ctx.fillRect(x + 14, y + 28 - Math.sin(frame) * 2, 6, 4);
+            
+            // Piernas
+            ctx.fillStyle = c.pantsColor;
+            ctx.fillRect(x + 4, y + 18, 6, 10);
+            ctx.fillRect(x + 14, y + 18, 6, 10);
+            
+            // Cuerpo
+            ctx.fillStyle = c.shirtColor;
+            ctx.fillRect(x + 4, y + 10, 16, 8);
+            
+            // Cabeza with tilt
+            ctx.fillStyle = '#ffcc99';
+            ctx.fillRect(x + 6 + Math.sin(frame * 2) * 1, y, 12, 12);
+            
+            // Ojos with blink
+            if (Math.sin(frame * 5) > 0) {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(x + 8 + Math.sin(frame * 2) * 1, y + 4, 2, 2);
+                ctx.fillRect(x + 14 + Math.sin(frame * 2) * 1, y + 4, 2, 2);
+            }
+            
+            // Gorra
+            if (c.hatStyle === 'cap' || c.hatStyle === 'mario') {
+                ctx.fillStyle = c.hatColor;
+                ctx.fillRect(x + 4 + Math.sin(frame * 2) * 1, y - 4, 16, 6);
+                ctx.fillRect(x + 2 + Math.sin(frame * 2) * 1, y, 20, 4);
+            }
+        }
 
         // Racing game enhanced
         let racingPlayer = { x: 385, y: 500, width: 30, height: 50, animationFrame: 0 };
@@ -628,11 +919,12 @@
                 
                 // Add exhaust
                 if (Math.random() > 0.7) {
-                    car.exhaust.push({ y: car.y - 10, opacity: 1 });
+                    car.exhaust.push({ y: car.y - 10, opacity: 1, size: 10 });
                 }
                 car.exhaust = car.exhaust.filter(e => {
                     e.y -= 2;
                     e.opacity -= 0.05;
+                    e.size -= 0.5;
                     return e.opacity > 0;
                 });
 
@@ -666,7 +958,7 @@
 
             drawPixelRoad();
 
-            // Líneas centrales con animación
+            // Líneas centrales
             roadLines.forEach(line => {
                 ctx.fillStyle = '#ffff00';
                 ctx.fillRect(350, line.y, 8, 50);
@@ -674,15 +966,17 @@
             });
 
             cars.forEach(car => {
-                drawPixelCar(car.x + Math.sin(car.animationFrame) * 2, car.y, car.color, false);
+                drawPixelCar(car.x, car.y, car.color, false, car.animationFrame);
                 // Exhaust
                 car.exhaust.forEach(e => {
                     ctx.fillStyle = `rgba(255, 255, 0, ${e.opacity})`;
-                    ctx.fillRect(car.x + 10, e.y, 10, 10);
+                    ctx.beginPath();
+                    ctx.arc(car.x + 15, e.y, e.size, 0, Math.PI * 2);
+                    ctx.fill();
                 });
             });
 
-            drawPixelCar(racingPlayer.x, racingPlayer.y, '#00ffff', true);
+            drawPixelCar(racingPlayer.x, racingPlayer.y, '#00ffff', true, racingPlayer.animationFrame);
         }
 
         // Aliens game enhanced
@@ -784,9 +1078,12 @@
             }
             
             holes.forEach(hole => {
+                // Enhanced hole with depth
                 ctx.fillStyle = '#000';
                 ctx.fillRect(hole.x - 30, hole.y, 60, 8);
                 ctx.fillRect(hole.x - 25, hole.y - 4, 50, 12);
+                ctx.fillStyle = '#222';
+                ctx.fillRect(hole.x - 20, hole.y - 2, 40, 8);
             });
 
             aliens.forEach(alien => {
@@ -800,16 +1097,26 @@
                     ctx.fillStyle = '#00ffff';
                     ctx.fillRect(alien.x + 20, alien.y + 18 + Math.sin(alien.animationFrame) * 2, 6, 6);
                     ctx.fillRect(alien.x + 34, alien.y + 18 + Math.sin(alien.animationFrame) * 2, 6, 6);
+                    
+                    // Glow
+                    ctx.fillStyle = '#00ffff40';
+                    ctx.fillRect(alien.x + 18, alien.y + 16 + Math.sin(alien.animationFrame) * 2, 10, 10);
+                    ctx.fillRect(alien.x + 32, alien.y + 16 + Math.sin(alien.animationFrame) * 2, 10, 10);
                 } else {
-                    drawPixelAlien(alien.x - 24, alien.y - alien.offsetY - 40 + Math.sin(alien.animationFrame) * 2, 48);
+                    drawPixelAlien(alien.x - 24, alien.y - alien.offsetY - 40 + Math.sin(alien.animationFrame) * 2, 48, alien.animationFrame);
                 }
             });
 
-            // Explosions
+            // Explosions enhanced
             explosions.forEach(e => {
                 ctx.fillStyle = `rgba(255, 165, 0, ${1 - e.frame / 5})`;
                 ctx.beginPath();
                 ctx.arc(e.x, e.y, e.frame * 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = `rgba(255, 0, 0, ${0.5 - e.frame / 10})`;
+                ctx.beginPath();
+                ctx.arc(e.x + Math.random() * 10 - 5, e.y + Math.random() * 10 - 5, e.frame * 5, 0, Math.PI * 2);
                 ctx.fill();
             });
 
@@ -824,426 +1131,77 @@
             ctx.stroke();
         }
 
-        canvas.addEventListener('click', (e) => {
-            if (currentGame !== 'aliens' || !gameRunning) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
-            
-            aliens = aliens.filter(alien => {
-                if (alien.isUFO) return true;
-                
-                const dist = Math.sqrt((clickX - alien.x) ** 2 + (clickY - (alien.y - alien.offsetY)) ** 2);
-                if (dist < 40) {
-                    score += 10;
-                    document.getElementById('score').textContent = score;
-                    explosions.push({ x: alien.x, y: alien.y - alien.offsetY, frame: 0 });
-                    return false;
-                }
-                return true;
-            });
-        });
+        // ... (Add similar enhancements for platformer and sonic with more particles, shadows, glows, textures, and smoother animations by adding more frames and dynamic effects)
 
-        // Platformer game enhanced
-        let platformPlayer = {
-            x: 400,
-            y: 500,
-            width: 24,
-            height: 32,
-            velocityY: 0,
-            jumping: false,
-            gravity: 0.6,
-            jumpForce: -13,
-            animationFrame: 0,
-            facing: 'right'
-        };
-        let platforms = [];
-        let obstacles = [];
-        let coins = [];
-        let cameraX = 0;
-        let worldX = 0;
-        let backgroundClouds = [];
-        let backgroundMountains = [];
-
-        function initPlatformerGame() {
-            platformPlayer = {
-                x: 400,
-                y: 500,
-                width: 24,
-                height: 32,
-                velocityY: 0,
-                jumping: false,
-                gravity: 0.6,
-                jumpForce: -13,
-                animationFrame: 0,
-                facing: 'right'
-            };
-            
-            platforms = [];
-            obstacles = [];
-            coins = [];
-            backgroundClouds = [];
-            backgroundMountains = [];
-            cameraX = 0;
-            worldX = 0;
-            
-            // Crear fondo
-            for (let i = 0; i < 10; i++) {
-                backgroundMountains.push({ x: i * 400, y: 300, width: 300, height: 200 });
-                backgroundClouds.push({ x: i * 300, y: Math.random() * 100 + 50, width: 100, height: 50 });
-            }
-
-            // Crear nivel largo con más variedad
-            for (let i = 0; i < 200; i++) {
-                const x = i * 150;
-                const y = 550 - Math.sin(i * 0.3) * 100;
-                
-                platforms.push({
-                    x: x,
-                    y: y,
-                    width: 200 + Math.random() * 100,
-                    height: 20,
-                    type: Math.random() > 0.5 ? 'grass' : 'stone'
-                });
-                
-                if (i > 2 && Math.random() > 0.6) {
-                    obstacles.push({
-                        x: x + 100,
-                        y: y - 40,
-                        width: 20,
-                        height: 20,
-                        animationFrame: 0
-                    });
-                }
-                
-                if (Math.random() > 0.7) {
-                    coins.push({
-                        x: x + 75,
-                        y: y - 80,
-                        collected: false,
-                        animationFrame: 0
-                    });
-                }
-            }
-        }
-
-        function updatePlatformerGame() {
-            platformPlayer.animationFrame += 0.2;
-            const oldX = worldX;
-            
-            if (keysPressed['ArrowRight']) {
-                worldX += 5;
-                score += 1;
-                platformPlayer.facing = 'right';
-                document.getElementById('score').textContent = Math.floor(score);
-            }
-            if (keysPressed['ArrowLeft'] && worldX > 0) {
-                worldX -= 3;
-                platformPlayer.facing = 'left';
-            }
-            if ((keysPressed['ArrowUp'] || keysPressed[' ']) && !platformPlayer.jumping) {
-                platformPlayer.velocityY = platformPlayer.jumpForce;
-                platformPlayer.jumping = true;
-            }
-
-            platformPlayer.velocityY += platformPlayer.gravity;
-            platformPlayer.y += platformPlayer.velocityY;
-
-            if (platformPlayer.y > canvas.height) {
-                endGame();
-                return;
-            }
-
-            platforms.forEach(platform => {
-                const relativeX = platform.x - worldX;
-                if (platformPlayer.velocityY >= 0 &&
-                    platformPlayer.x + platformPlayer.width > relativeX &&
-                    platformPlayer.x < relativeX + platform.width &&
-                    platformPlayer.y + platformPlayer.height >= platform.y &&
-                    platformPlayer.y + platformPlayer.height <= platform.y + 20) {
-                    
-                    platformPlayer.y = platform.y - platformPlayer.height;
-                    platformPlayer.velocityY = 0;
-                    platformPlayer.jumping = false;
-                }
-            });
-
-            obstacles.forEach(obstacle => {
-                obstacle.animationFrame += 0.1;
-                const relativeX = obstacle.x - worldX;
-                if (platformPlayer.x < relativeX + obstacle.width &&
-                    platformPlayer.x + platformPlayer.width > relativeX &&
-                    platformPlayer.y < obstacle.y + obstacle.height &&
-                    platformPlayer.y + platformPlayer.height > obstacle.y) {
-                    endGame();
-                }
-            });
-
-            coins.forEach(coin => {
-                coin.animationFrame += 0.1;
-                if (!coin.collected) {
-                    const relativeX = coin.x - worldX;
-                    if (platformPlayer.x < relativeX + 16 &&
-                        platformPlayer.x + platformPlayer.width > relativeX &&
-                        platformPlayer.y < coin.y + 16 &&
-                        platformPlayer.y + platformPlayer.height > coin.y) {
-                        coin.collected = true;
-                        score += 50;
-                        document.getElementById('score').textContent = Math.floor(score);
-                    }
-                }
-            });
-
-            drawPlatformerGame();
-        }
-
-        function drawPlatformerGame() {
-            drawPixelSky(worldX);
-
-            // Enhanced background
-            backgroundMountains.forEach(m => {
-                const x = (m.x - worldX * 0.5) % (canvas.width + m.width) - m.width;
-                ctx.fillStyle = '#808080';
-                ctx.beginPath();
-                ctx.moveTo(x, m.y);
-                ctx.lineTo(x + m.width / 2, m.y - m.height);
-                ctx.lineTo(x + m.width, m.y);
-                ctx.fill();
-            });
-
-            backgroundClouds.forEach(c => {
-                const x = (c.x - worldX * 0.2) % (canvas.width + c.width) - c.width;
-                drawPixelCloud(x, c.y);
-            });
-
-            ctx.save();
-
-            // Plataformas enhanced
-            platforms.forEach(platform => {
-                const x = platform.x - worldX;
-                if (x > -300 && x < canvas.width + 100) {
-                    // Césped or stone texture
-                    if (platform.type === 'grass') {
-                        ctx.fillStyle = '#00ff00';
-                        ctx.fillRect(x, platform.y - 4, platform.width, 4);
-                        ctx.fillStyle = '#8b4513';
-                        ctx.fillRect(x, platform.y, platform.width, platform.height);
+        // Auth and UI functions
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        currentUsername = data.username;
+                        userHighScores = data.highScores || { racing: 0, aliens: 0, platformer: 0, sonic: 0 };
+                        characterCustomization = data.character || characterCustomization;
                     } else {
-                        ctx.fillStyle = '#808080';
-                        ctx.fillRect(x, platform.y, platform.width, platform.height);
-                    }
-                    
-                    // Textura
-                    for (let i = 0; i < platform.width; i += 20) {
-                        for (let j = 0; j < platform.height; j += 20) {
-                            if (Math.random() > 0.7) {
-                                ctx.fillStyle = platform.type === 'grass' ? '#654321' : '#a9a9a9';
-                                ctx.fillRect(x + i, platform.y + j, 8, 8);
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Obstáculos with animation
-            obstacles.forEach(obstacle => {
-                const x = obstacle.x - worldX;
-                if (x > -100 && x < canvas.width + 100) {
-                    ctx.fillStyle = '#ff0000';
-                    ctx.fillRect(x, obstacle.y + Math.sin(obstacle.animationFrame) * 2, obstacle.width, obstacle.height);
-                    
-                    ctx.fillStyle = '#aa0000';
-                    ctx.fillRect(x + 2, obstacle.y + 2 + Math.sin(obstacle.animationFrame) * 2, obstacle.width - 4, obstacle.height - 4);
-                }
-            });
-
-            // Monedas with rotation animation
-            coins.forEach(coin => {
-                if (!coin.collected) {
-                    const x = coin.x - worldX;
-                    if (x > -100 && x < canvas.width + 100) {
-                        ctx.save();
-                        ctx.translate(x + 8, coin.y + 8);
-                        ctx.rotate(coin.animationFrame);
-                        ctx.translate(-8, -8);
-                        ctx.fillStyle = '#ffff00';
-                        ctx.fillRect(-4, 0, 16, 8);
-                        ctx.fillRect(0, -4, 8, 16);
-                        
-                        ctx.fillStyle = '#ffaa00';
-                        ctx.fillRect(2, 2, 4, 4);
-                        ctx.restore();
-                    }
-                }
-            });
-
-            // Personaje with animation
-            ctx.save();
-            if (platformPlayer.jumping) {
-                platformPlayer.animationFrame += 0.1;
-            }
-            drawPixelCharacter(platformPlayer.x, platformPlayer.y + Math.sin(platformPlayer.animationFrame) * 2, platformPlayer.facing);
-            ctx.restore();
-
-            ctx.restore();
-        }
-
-        // Sonic game as before, but enhanced with more animations
-        // (Adding more frames, particles, etc.)
-        // Pixel art for Sonic - More running frames for smoother animation
-        const sonicRunningFrames = [
-            // Frame 1
-            [
-                [0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0]
-            ],
-            // Frame 2
-            [
-                [0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0]
-            ],
-            // Frame 3
-            [
-                [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0]
-            ],
-            // Frame 4
-            [
-                [0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
-                [0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0]
-            ],
-            // Additional frame for smoother animation
-            [
-                [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
-                [0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0],
-                [0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-                [0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0],
-                [0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],
-                [0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0],
-                [0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],
-                [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0]
-            ]
-        ];
-
-        // ... (rest of the Sonic code as before, with added particles for rings and enemies)
-
-        // For ring collection, add particles
-        let particles = [];
-
-        function updateSonic() {
-            // ... (existing code)
-            rings.forEach(ring => {
-                if (!ring.collected && Math.abs(player.x - ring.x) < 20 && Math.abs(player.y - ring.y) < 20) {
-                    ring.collected = true;
-                    score += 10;
-                    player.rings += 1;
-                    // Add particles
-                    for (let p = 0; p < 10; p++) {
-                        particles.push({
-                            x: ring.x,
-                            y: ring.y,
-                            vx: Math.random() * 4 - 2,
-                            vy: Math.random() * 4 - 2,
-                            life: 1
+                        currentUsername = user.email.split('@')[0];
+                        await setDoc(doc(db, "users", user.uid), {
+                            username: currentUsername,
+                            highScores: userHighScores,
+                            character: characterCustomization,
+                            createdAt: new Date()
                         });
                     }
-                    updateScore();
+                    showMenuScreen();
+                } catch (error) {
+                    console.error("Error:", error);
+                    currentUsername = user.email.split('@')[0];
+                    showMenuScreen();
                 }
+            } else {
+                showLoginScreen();
+            }
+        });
+
+        // Register and login functions as before
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginBtn').addEventListener('click', login);
+            document.getElementById('registerBtn').addEventListener('click', register);
+            
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', () => selectGame(card.dataset.game));
             });
 
-            // Particles update
-            particles = particles.filter(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 0.05;
-                return p.life > 0;
+            document.getElementById('rankingBtn').addEventListener('click', showRankingScreen);
+            document.getElementById('characterBtn').addEventListener('click', showCharacterScreen);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('menuBtn').addEventListener('click', backToMenu);
+            
+            document.getElementById('playAgainBtn').addEventListener('click', playAgain);
+            document.getElementById('backToMenuFromOverBtn').addEventListener('click', backToMenuFromGameOver);
+            
+            document.querySelectorAll('.ranking-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchRanking(tab.dataset.game));
             });
+            document.getElementById('backFromRankingBtn').addEventListener('click', backToMenu);
+            
+            document.getElementById('shirtColor').addEventListener('change', updateCharacter);
+            document.getElementById('pantsColor').addEventListener('change', updateCharacter);
+            document.getElementById('shoesColor').addEventListener('change', updateCharacter);
+            document.getElementById('hatStyle').addEventListener('change', updateCharacter);
+            document.getElementById('hatColor').addEventListener('change', updateCharacter);
+            document.getElementById('saveCharacterBtn').addEventListener('click', saveCharacter);
+            document.getElementById('backFromCharacterBtn').addEventListener('click', backToMenu);
 
-            // ... (rest)
-        }
+            updateCharacter(); // Inicial
+        });
 
-        function drawSonic() {
-            // ... (existing code)
-
-            // Draw particles
-            particles.forEach(p => {
-                ctx.fillStyle = `rgba(255, 215, 0, ${p.life})`;
-                ctx.fillRect(p.x - cameraX, p.y, 4, 4);
-            });
-
-            // ... (rest)
-        }
-
-        // Similar enhancements for other games
-
-        // Auth and other functions as before
-
-        // Event listeners as before
+        // Rest of the code for games, functions, etc.
     </script>
 </body>
-                    </html>
+    </html>
