@@ -1287,6 +1287,204 @@
         }
 
         // Añade implementaciones para otros juegos si es necesario, pero como el original está truncado, enfocamos en sonic
+
+        // -------------------------------------------------
+        //  LOGIN / REGISTER
+        // -------------------------------------------------
+        async function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            if (!username || !password) {
+                showError('Completa usuario y contraseña');
+                return;
+            }
+
+            showLoading(true);
+            clearError();
+
+            try {
+                // Firebase Auth usa email, así que convertimos el username → email
+                const email = `${username.toLowerCase()}@minijuegos.com`;
+
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará de mostrar el menú
+            } catch (err) {
+                let msg = 'Error al iniciar sesión';
+                if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                    msg = 'Usuario o contraseña incorrectos';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = 'Usuario no válido';
+                }
+                showError(msg);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            if (!username || !password) {
+                showError('Completa usuario y contraseña');
+                return;
+            }
+            if (password.length < 6) {
+                showError('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
+            showLoading(true);
+            clearError();
+
+            try {
+                const email = `${username.toLowerCase()}@minijuegos.com`;
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Guardamos el nombre de usuario y high‑scores iniciales
+                await setDoc(doc(db, 'users', user.uid), {
+                    username: username,
+                    highScores: { racing: 0, aliens: 0, platformer: 0, sonic: 0 },
+                    character: characterCustomization
+                });
+
+                // onAuthStateChanged mostrará el menú automáticamente
+            } catch (err) {
+                let msg = 'Error al crear la cuenta';
+                if (err.code === 'auth/email-already-in-use') {
+                    msg = 'Ese usuario ya está registrado';
+                } else if (err.code === 'auth/weak-password') {
+                    msg = 'Contraseña demasiado débil';
+                }
+                showError(msg);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // -------------------------------------------------
+        //  HELPERS UI
+        // -------------------------------------------------
+        function showError(msg) {
+            const el = document.getElementById('loginError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+        function clearError() {
+            const el = document.getElementById('loginError');
+            el.textContent = '';
+            el.style.display = 'none';
+        }
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+            const btns = document.querySelectorAll('#loginScreen .btn');
+            btns.forEach(b => b.disabled = show);
+        }
+
+        // -------------------------------------------------
+        //  ENTER → LOGIN
+        // -------------------------------------------------
+        document.getElementById('usernameInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('passwordInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+
+        // -------------------------------------------------
+        //  AUTH OBSERVER (el que ya tenías)
+        // -------------------------------------------------
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await getUserData();          // <-- carga username, high‑scores, etc.
+                showScreen('menuScreen');
+            } else {
+                showScreen('loginScreen');
+            }
+        });
+
+        // -------------------------------------------------
+        //  FUNCIÓN PARA MOSTRAR PANTALLAS
+        // -------------------------------------------------
+        function showScreen(screenId) {
+            const screens = ['loginScreen', 'menuScreen', 'gameScreen',
+                             'gameOverScreen', 'rankingScreen', 'characterScreen'];
+            screens.forEach(id => {
+                document.getElementById(id).style.display = (id === screenId) ? 'block' : 'none';
+            });
+        }
+
+        function showRankingScreen() {
+            showScreen('rankingScreen');
+            switchRanking('racing'); // Por defecto
+        }
+
+        function showCharacterScreen() {
+            showScreen('characterScreen');
+            // Cargar personalización actual
+            document.getElementById('shirtColor').value = characterCustomization.shirtColor;
+            document.getElementById('pantsColor').value = characterCustomization.pantsColor;
+            document.getElementById('shoesColor').value = characterCustomization.shoesColor;
+            document.getElementById('hatStyle').value = characterCustomization.hatStyle;
+            document.getElementById('hatColor').value = characterCustomization.hatColor;
+            updateCharacter();
+        }
+
+        async function logout() {
+            await signOut(auth);
+            // onAuthStateChanged manejará el cambio a login
+        }
+
+        function updateCharacter() {
+            const previewCanvas = document.getElementById('characterPreview');
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            // Dibujar personaje simple (ejemplo)
+            // Cuerpo
+            previewCtx.fillStyle = document.getElementById('shirtColor').value;
+            previewCtx.fillRect(80, 100, 40, 60);
+
+            // Pantalones
+            previewCtx.fillStyle = document.getElementById('pantsColor').value;
+            previewCtx.fillRect(80, 160, 40, 60);
+
+            // Zapatos
+            previewCtx.fillStyle = document.getElementById('shoesColor').value;
+            previewCtx.fillRect(80, 220, 40, 20);
+
+            // Gorra
+            const hatStyle = document.getElementById('hatStyle').value;
+            if (hatStyle !== 'none') {
+                previewCtx.fillStyle = document.getElementById('hatColor').value;
+                if (hatStyle === 'cap') {
+                    previewCtx.fillRect(70, 80, 60, 20);
+                } else if (hatStyle === 'mario') {
+                    previewCtx.fillRect(75, 70, 50, 30);
+                }
+            }
+        }
+
+        async function saveCharacter() {
+            characterCustomization = {
+                shirtColor: document.getElementById('shirtColor').value,
+                pantsColor: document.getElementById('pantsColor').value,
+                shoesColor: document.getElementById('shoesColor').value,
+                hatStyle: document.getElementById('hatStyle').value,
+                hatColor: document.getElementById('hatColor').value
+            };
+            await updateDoc(doc(db, 'users', currentUser.uid), {
+                character: characterCustomization
+            });
+            backToMenu();
+        }
+
+        // Inicializar
+        updateCharacter(); // Por si acaso
     </script>
 </body>
 </html>
