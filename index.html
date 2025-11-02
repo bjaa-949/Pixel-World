@@ -595,6 +595,118 @@
                 max-height: 70vh;
             }
         }
+
+        /* Ajustes para orientación horizontal y vertical */
+        @media (orientation: landscape) {
+            .action-buttons {
+                bottom: 20px;
+                left: 20px;
+            }
+            #mobileControls {
+                bottom: 20px;
+                right: 20px;
+            }
+            #inventory {
+                bottom: 20px;
+            }
+            #chatBox {
+                bottom: 100px;
+            }
+            #chatInput {
+                bottom: 60px;
+            }
+            #hud {
+                top: 5px;
+                left: 5px;
+            }
+        }
+
+        @media (orientation: portrait) {
+            .action-buttons {
+                bottom: 80px;
+                left: 10px;
+            }
+            #mobileControls {
+                bottom: 80px;
+                right: 10px;
+            }
+            #inventory {
+                bottom: 150px;
+            }
+            #chatBox {
+                bottom: 220px;
+            }
+            #chatInput {
+                bottom: 180px;
+            }
+            #hud {
+                top: 10px;
+                left: 10px;
+            }
+        }
+
+        /* Botón para texturas */
+        #textureToggle {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            padding: 10px;
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Botones de zoom */
+        #zoomButtons {
+            position: fixed;
+            top: 100px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        #zoomIn, #zoomOut {
+            padding: 10px;
+            background: rgba(139, 115, 85, 0.9);
+            border: 3px solid #654321;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Botón de magia */
+        #magicBtn {
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 115, 85, 0.8);
+            border: 3px solid #654321;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Alianza lista */
+        #allianceList {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 115, 85, 0.95);
+            border: 4px solid #654321;
+            padding: 20px;
+            display: none;
+            z-index: 200;
+            max-width: 400px;
+            pointer-events: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -643,6 +755,7 @@
             <button class="menu-btn" onclick="toggleAllianceMenu()">⚔️ ALIANZA</button>
             <button class="menu-btn" onclick="togglePlayersList()">👥 JUGADORES</button>
             <button class="menu-btn" onclick="toggleChat()">💬 CHAT</button>
+            <button class="menu-btn" onclick="toggleAllianceList()">📜 ALIANZAS</button>
         </div>
 
         <div id="chatBox"></div>
@@ -659,6 +772,7 @@
         <div class="action-buttons">
             <button class="action-btn" id="actionBtn">⚒️</button>
             <button class="action-btn" id="attackBtn">⚔️</button>
+            <button class="action-btn" id="magicBtn">✨</button>
         </div>
 
         <div id="buildMenu">
@@ -713,6 +827,12 @@
             <div class="alliance-members" id="allianceMembers"></div>
         </div>
 
+        <div id="allianceList">
+            <button class="close-btn" onclick="toggleAllianceList()">✕</button>
+            <h2>ALIANZAS EXISTENTES</h2>
+            <div id="allianceListContent"></div>
+        </div>
+
         <div id="shopMenu">
             <button class="close-btn" onclick="toggleShopMenu()">✕</button>
             <h2>TIENDA</h2>
@@ -725,1276 +845,1365 @@
         </div>
 
         <div id="notifications"></div>
+
+        <button id="textureToggle" onclick="toggleTextures()">Cambiar Texturas</button>
+
+        <div id="zoomButtons">
+            <button id="zoomIn" onclick="zoomCamera(1.1)">+</button>
+            <button id="zoomOut" onclick="zoomCamera(0.9)">-</button>
+        </div>
+
     </div>
 
-    <!-- ========================================== -->
-    <!-- PEGA AQUÍ LA PARTE 2 Y PARTE 3 COMPLETAS -->
-    <!-- ========================================== -->
     <script type="module">
-    // PEGA AQUÍ TODO EL CÓDIGO DE LA PARTE 2
-     // PARTE 2: JAVASCRIPT - SISTEMA BASE Y FIREBASE
-// Pega esto dentro de <script type="module"> después del HTML
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, getDocs, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTn_VTTMznvVJIZSjKhGOkvSOQQthNSfk",
+            authDomain: "no-choques.firebaseapp.com",
+            projectId: "no-choques",
+            storageBucket: "no-choques.firebasestorage.app",
+            messagingSenderId: "222726589609",
+            appId: "1:222726589609:web:59e6dd00f28be661b0edb8"
+        };
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDTn_VTTMznvVJIZSjKhGOkvSOQQthNSfk",
-    authDomain: "no-choques.firebaseapp.com",
-    projectId: "no-choques",
-    storageBucket: "no-choques.firebasestorage.app",
-    messagingSenderId: "222726589609",
-    appId: "1:222726589609:web:59e6dd00f28be661b0edb8"
-};
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+        // Variables globales
+        let currentUser = null;
+        let currentUsername = null;
+        let canvas, ctx;
+        let gameRunning = false;
+        let players = new Map();
+        let worldData = {
+            tiles: [],
+            buildings: [],
+            items: [],
+            npcs: []
+        };
 
-// Variables globales
-let currentUser = null;
-let currentUsername = null;
-let canvas, ctx;
-let gameRunning = false;
-let players = new Map();
-let worldData = {
-    tiles: [],
-    buildings: [],
-    items: [],
-    npcs: []
-};
+        // Configuración del mundo
+        const TILE_SIZE = 16;
+        const WORLD_WIDTH = 200;
+        const WORLD_HEIGHT = 200;
+        const CHUNK_SIZE = 16;
 
-// Configuración del mundo
-const TILE_SIZE = 16;
-const WORLD_WIDTH = 200;
-const WORLD_HEIGHT = 200;
-const CHUNK_SIZE = 16;
-
-// Jugador local
-let localPlayer = {
-    x: WORLD_WIDTH * TILE_SIZE / 2,
-    y: WORLD_HEIGHT * TILE_SIZE / 2,
-    vx: 0,
-    vy: 0,
-    speed: 3,
-    health: 100,
-    maxHealth: 100,
-    gold: 100,
-    inventory: [],
-    customization: {
-        skinColor: '#ffcc99',
-        clothesColor: '#4169e1',
-        hairStyle: 'short',
-        hairColor: '#8b4513',
-        magicPower: 'none'
-    },
-    selectedSlot: 0,
-    alliance: null
-};
-
-// Cámara
-let camera = {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0
-};
-
-// Control
-let keys = {};
-let mouseX = 0;
-let mouseY = 0;
-let joystickActive = false;
-let joystickDelta = { x: 0, y: 0 };
-
-// Listeners de Firebase
-let playersListener = null;
-let worldListener = null;
-
-// ==================== AUTENTICACIÓN ====================
-window.register = async function() {
-    const username = document.getElementById('usernameInput').value.trim();
-    const password = document.getElementById('passwordInput').value;
-    const errorDiv = document.getElementById('loginError');
-
-    if (!username || !password) {
-        errorDiv.textContent = 'Completa todos los campos';
-        return;
-    }
-
-    if (username.length < 3) {
-        errorDiv.textContent = 'Usuario muy corto';
-        return;
-    }
-
-    if (password.length < 6) {
-        errorDiv.textContent = 'Contraseña muy corta';
-        return;
-    }
-
-    try {
-        const usernameQuery = query(collection(db, "pixelworld_players"), where("username", "==", username));
-        const snapshot = await getDocs(usernameQuery);
-        
-        if (!snapshot.empty) {
-            errorDiv.textContent = 'Usuario ya existe';
-            return;
-        }
-
-        const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        await setDoc(doc(db, "pixelworld_players", userCredential.user.uid), {
-            username: username,
+        // Jugador local
+        let localPlayer = {
             x: WORLD_WIDTH * TILE_SIZE / 2,
             y: WORLD_HEIGHT * TILE_SIZE / 2,
+            vx: 0,
+            vy: 0,
+            speed: 3,
             health: 100,
+            maxHealth: 100,
             gold: 100,
-            customization: localPlayer.customization,
             inventory: [],
-            alliance: null,
-            online: true,
-            lastUpdate: Date.now()
-        });
-        
-        errorDiv.textContent = '';
-    } catch (error) {
-        console.error('Error:', error);
-        errorDiv.textContent = 'Error al crear cuenta';
-    }
-};
+            customization: {
+                skinColor: '#ffcc99',
+                clothesColor: '#4169e1',
+                hairStyle: 'short',
+                hairColor: '#8b4513',
+                magicPower: 'none'
+            },
+            selectedSlot: 0,
+            alliance: null
+        };
 
-window.login = async function() {
-    const username = document.getElementById('usernameInput').value.trim();
-    const password = document.getElementById('passwordInput').value;
-    const errorDiv = document.getElementById('loginError');
+        // Cámara
+        let camera = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            zoom: 1
+        };
 
-    if (!username || !password) {
-        errorDiv.textContent = 'Completa todos los campos';
-        return;
-    }
+        // Control
+        let keys = {};
+        let mouseX = 0;
+        let mouseY = 0;
+        let joystickActive = false;
+        let joystickDelta = { x: 0, y: 0 };
 
-    document.getElementById('loginLoading').style.display = 'block';
+        // Listeners de Firebase
+        let playersListener = null;
+        let worldListener = null;
+        let alliancesListener = null;
 
-    try {
-        const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
-        await signInWithEmailAndPassword(auth, email, password);
-        errorDiv.textContent = '';
-    } catch (error) {
-        document.getElementById('loginLoading').style.display = 'none';
-        errorDiv.textContent = 'Usuario o contraseña incorrectos';
-    }
-};
+        // Modo de texturas: 'realistic' o 'minimalist'
+        let textureMode = 'realistic';
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        currentUser = user;
-        try {
-            const playerDoc = await getDoc(doc(db, "pixelworld_players", user.uid));
-            if (playerDoc.exists()) {
-                const data = playerDoc.data();
-                currentUsername = data.username;
-                localPlayer.x = data.x || localPlayer.x;
-                localPlayer.y = data.y || localPlayer.y;
-                localPlayer.health = data.health || 100;
-                localPlayer.gold = data.gold || 100;
-                localPlayer.customization = data.customization || localPlayer.customization;
-                localPlayer.inventory = data.inventory || [];
-                localPlayer.alliance = data.alliance || null;
+        // ==================== AUTENTICACIÓN ====================
+        window.register = async function() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'Completa todos los campos';
+                return;
+            }
+
+            if (username.length < 3) {
+                errorDiv.textContent = 'Usuario muy corto';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorDiv.textContent = 'Contraseña muy corta';
+                return;
+            }
+
+            try {
+                const usernameQuery = query(collection(db, "pixelworld_players"), where("username", "==", username));
+                const snapshot = await getDocs(usernameQuery);
                 
-                await updateDoc(doc(db, "pixelworld_players", user.uid), {
+                if (!snapshot.empty) {
+                    errorDiv.textContent = 'Usuario ya existe';
+                    return;
+                }
+
+                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                await setDoc(doc(db, "pixelworld_players", userCredential.user.uid), {
+                    username: username,
+                    x: WORLD_WIDTH * TILE_SIZE / 2,
+                    y: WORLD_HEIGHT * TILE_SIZE / 2,
+                    health: 100,
+                    gold: 100,
+                    customization: localPlayer.customization,
+                    inventory: [],
+                    alliance: null,
                     online: true,
                     lastUpdate: Date.now()
                 });
                 
-                startGame();
+                errorDiv.textContent = '';
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Error al crear cuenta';
             }
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    }
-});
+        };
 
-// ==================== INICIO DEL JUEGO ====================
-function startGame() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('gameContainer').style.display = 'block';
-    
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    
-    setupControls();
-    generateWorld();
-    setupInventory();
-    setupShop();
-    setupBuildMenu();
-    
-    document.getElementById('playerNameHUD').textContent = currentUsername;
-    updateHUD();
-    
-    listenToPlayers();
-    listenToWorld();
-    
-    gameRunning = true;
-    gameLoop();
-    
-    setInterval(updatePlayerPosition, 100);
-    setInterval(syncWithServer, 5000);
-}
+        window.login = async function() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    camera.width = canvas.width;
-    camera.height = canvas.height;
-}
-
-// ==================== CONTROLES ====================
-function setupControls() {
-    // Teclado
-    window.addEventListener('keydown', (e) => {
-        keys[e.key] = true;
-        
-        if (e.key === 'e' || e.key === 'E') {
-            interact();
-        }
-        
-        if (e.key === 'Enter' && document.getElementById('chatInput').style.display === 'block') {
-            sendChatMessage();
-        }
-    });
-    
-    window.addEventListener('keyup', (e) => {
-        keys[e.key] = false;
-    });
-    
-    // Mouse
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        mouseY = e.clientY - rect.top;
-    });
-    
-    canvas.addEventListener('click', (e) => {
-        const worldX = camera.x + mouseX;
-        const worldY = camera.y + mouseY;
-        handleWorldClick(worldX, worldY);
-    });
-    
-    // Joystick móvil
-    const joystick = document.getElementById('joystick');
-    const joystickInner = document.getElementById('joystickInner');
-    
-    joystick.addEventListener('touchstart', handleJoystickStart);
-    joystick.addEventListener('touchmove', handleJoystickMove);
-    joystick.addEventListener('touchend', handleJoystickEnd);
-    
-    function handleJoystickStart(e) {
-        e.preventDefault();
-        joystickActive = true;
-    }
-    
-    function handleJoystickMove(e) {
-        if (!joystickActive) return;
-        e.preventDefault();
-        
-        const rect = joystick.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        const touch = e.touches[0];
-        const x = touch.clientX - rect.left - centerX;
-        const y = touch.clientY - rect.top - centerY;
-        
-        const distance = Math.sqrt(x * x + y * y);
-        const maxDistance = 35;
-        
-        if (distance > maxDistance) {
-            joystickDelta.x = (x / distance) * maxDistance;
-            joystickDelta.y = (y / distance) * maxDistance;
-        } else {
-            joystickDelta.x = x;
-            joystickDelta.y = y;
-        }
-        
-        joystickInner.style.transform = `translate(calc(-50% + ${joystickDelta.x}px), calc(-50% + ${joystickDelta.y}px))`;
-    }
-    
-    function handleJoystickEnd(e) {
-        e.preventDefault();
-        joystickActive = false;
-        joystickDelta = { x: 0, y: 0 };
-        joystickInner.style.transform = 'translate(-50%, -50%)';
-    }
-    
-    // Botones de acción móviles
-    document.getElementById('actionBtn').addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        interact();
-    });
-    
-    document.getElementById('attackBtn').addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        attack();
-    });
-    
-    // Chat
-    document.getElementById('chatInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
-    });
-}
-
-// ==================== GENERACIÓN DEL MUNDO ====================
-function generateWorld() {
-    worldData.tiles = [];
-    
-    for (let y = 0; y < WORLD_HEIGHT; y++) {
-        worldData.tiles[y] = [];
-        for (let x = 0; x < WORLD_WIDTH; x++) {
-            const noise = Math.random();
-            let tile;
-            
-            if (noise < 0.3) {
-                tile = { type: 'grass', walkable: true };
-            } else if (noise < 0.5) {
-                tile = { type: 'dirt', walkable: true };
-            } else if (noise < 0.65) {
-                tile = { type: 'water', walkable: false };
-            } else if (noise < 0.75) {
-                tile = { type: 'tree', walkable: false, resource: 'wood' };
-            } else if (noise < 0.80) {
-                tile = { type: 'stone', walkable: false, resource: 'stone' };
-            } else {
-                tile = { type: 'grass', walkable: true };
+            if (!username || !password) {
+                errorDiv.textContent = 'Completa todos los campos';
+                return;
             }
-            
-            worldData.tiles[y][x] = tile;
-        }
-    }
-    
-    // Generar algunos NPCs
-    for (let i = 0; i < 10; i++) {
-        worldData.npcs.push({
-            id: 'npc_' + i,
-            x: Math.random() * WORLD_WIDTH * TILE_SIZE,
-            y: Math.random() * WORLD_HEIGHT * TILE_SIZE,
-            type: Math.random() > 0.5 ? 'villager' : 'merchant',
-            health: 50
-        });
-    }
-}
 
-// ==================== INVENTARIO ====================
-function setupInventory() {
-    const inventory = document.getElementById('inventory');
-    inventory.innerHTML = '';
-    
-    localPlayer.inventory = [
-        { type: 'wood', count: 10 },
-        { type: 'stone', count: 5 },
-        { type: 'sword', count: 1 },
-        { type: 'pickaxe', count: 1 },
-        { type: 'food', count: 3 }
-    ];
-    
-    for (let i = 0; i < 8; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'inventory-slot';
-        if (i === localPlayer.selectedSlot) slot.classList.add('active');
-        
-        slot.onclick = () => selectSlot(i);
-        
-        if (localPlayer.inventory[i]) {
-            const itemCanvas = document.createElement('canvas');
-            itemCanvas.width = 40;
-            itemCanvas.height = 40;
-            const itemCtx = itemCanvas.getContext('2d');
-            drawItem(itemCtx, localPlayer.inventory[i].type, 0, 0, 40);
-            slot.appendChild(itemCanvas);
-            
-            const count = document.createElement('div');
-            count.className = 'item-count';
-            count.textContent = localPlayer.inventory[i].count;
-            slot.appendChild(count);
-        }
-        
-        inventory.appendChild(slot);
-    }
-}
+            document.getElementById('loginLoading').style.display = 'block';
 
-function selectSlot(index) {
-    localPlayer.selectedSlot = index;
-    setupInventory();
-}
+            try {
+                const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
+                await signInWithEmailAndPassword(auth, email, password);
+                errorDiv.textContent = '';
+            } catch (error) {
+                document.getElementById('loginLoading').style.display = 'none';
+                errorDiv.textContent = 'Usuario o contraseña incorrectos';
+            }
+        };
 
-// ==================== MENÚS ====================
-window.toggleBuildMenu = function() {
-    const menu = document.getElementById('buildMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-};
-
-window.toggleCharacterMenu = function() {
-    const menu = document.getElementById('characterMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    if (menu.style.display === 'block') {
-        updateCharacterPreview();
-    }
-};
-
-window.toggleShopMenu = function() {
-    const menu = document.getElementById('shopMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-};
-
-window.toggleAllianceMenu = function() {
-    const menu = document.getElementById('allianceMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    updateAllianceInfo();
-};
-
-window.togglePlayersList = function() {
-    const list = document.getElementById('playersList');
-    list.style.display = list.style.display === 'none' ? 'block' : 'none';
-};
-
-window.toggleChat = function() {
-    const chat = document.getElementById('chatBox');
-    const input = document.getElementById('chatInput');
-    const isVisible = chat.style.display === 'block';
-    chat.style.display = isVisible ? 'none' : 'block';
-    input.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) input.focus();
-};
-
-function setupBuildMenu() {
-    const grid = document.getElementById('buildGrid');
-    const buildItems = [
-        { type: 'wall', name: 'Muro', cost: 5 },
-        { type: 'floor', name: 'Suelo', cost: 3 },
-        { type: 'door', name: 'Puerta', cost: 8 },
-        { type: 'chest', name: 'Cofre', cost: 10 },
-        { type: 'furnace', name: 'Horno', cost: 15 },
-        { type: 'bed', name: 'Cama', cost: 12 },
-        { type: 'table', name: 'Mesa', cost: 6 },
-        { type: 'chair', name: 'Silla', cost: 4 }
-    ];
-    
-    buildItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'build-item';
-        div.innerHTML = `
-            <canvas width="40" height="40"></canvas>
-            <div>${item.name}</div>
-            <div style="color: #ffff00;">${item.cost} madera</div>
-        `;
-        const canvas = div.querySelector('canvas');
-        const ctx = canvas.getContext('2d');
-        drawBuilding(ctx, item.type, 0, 0, 40);
-        
-        div.onclick = () => placeBuilding(item.type, item.cost);
-        grid.appendChild(div);
-    });
-}
-
-function setupShop() {
-    const grid = document.getElementById('shopGrid');
-    const shopItems = [
-        { type: 'sword', name: 'Espada', price: 50 },
-        { type: 'armor', name: 'Armadura', price: 100 },
-        { type: 'bow', name: 'Arco', price: 75 },
-        { type: 'potion', name: 'Poción', price: 20 },
-        { type: 'food', name: 'Comida', price: 10 },
-        { type: 'pickaxe', name: 'Pico', price: 30 }
-    ];
-    
-    shopItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'shop-item';
-        div.innerHTML = `
-            <canvas width="40" height="40"></canvas>
-            <div>${item.name}</div>
-            <div class="shop-price">💰 ${item.price}</div>
-        `;
-        const canvas = div.querySelector('canvas');
-        const ctx = canvas.getContext('2d');
-        drawItem(ctx, item.type, 0, 0, 40);
-        
-        div.onclick = () => buyItem(item.type, item.price);
-        grid.appendChild(div);
-    });
-}
-
-// ==================== ACTUALIZACIÓN ====================
-async function updatePlayerPosition() {
-    if (!currentUser || !gameRunning) return;
-    
-    try {
-        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
-            x: localPlayer.x,
-            y: localPlayer.y,
-            health: localPlayer.health,
-            customization: localPlayer.customization,
-            lastUpdate: Date.now()
-        });
-    } catch (error) {
-        console.error("Error actualizando posición:", error);
-    }
-}
-
-async function syncWithServer() {
-    if (!currentUser) return;
-    
-    try {
-        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
-            gold: localPlayer.gold,
-            inventory: localPlayer.inventory,
-            alliance: localPlayer.alliance,
-            online: true,
-            lastUpdate: Date.now()
-        });
-    } catch (error) {
-        console.error("Error sincronizando:", error);
-    }
-}
-
-function listenToPlayers() {
-    const q = query(collection(db, "pixelworld_players"), where("online", "==", true));
-    playersListener = onSnapshot(q, (snapshot) => {
-        players.clear();
-        let onlineCount = 0;
-        
-        snapshot.forEach((doc) => {
-            if (doc.id !== currentUser.uid) {
-                const data = doc.data();
-                if (Date.now() - data.lastUpdate < 30000) {
-                    players.set(doc.id, data);
-                    onlineCount++;
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const playerDoc = await getDoc(doc(db, "pixelworld_players", user.uid));
+                    if (playerDoc.exists()) {
+                        const data = playerDoc.data();
+                        currentUsername = data.username;
+                        localPlayer.x = data.x || localPlayer.x;
+                        localPlayer.y = data.y || localPlayer.y;
+                        localPlayer.health = data.health || 100;
+                        localPlayer.gold = data.gold || 100;
+                        localPlayer.customization = data.customization || localPlayer.customization;
+                        localPlayer.inventory = data.inventory || [];
+                        localPlayer.alliance = data.alliance || null;
+                        
+                        await updateDoc(doc(db, "pixelworld_players", user.uid), {
+                            online: true,
+                            lastUpdate: Date.now()
+                        });
+                        
+                        startGame();
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
                 }
             }
         });
-        
-        document.getElementById('onlineCount').textContent = onlineCount + 1;
-        updatePlayersList();
-    });
-}
 
-function listenToWorld() {
-    // Escuchar cambios en edificios y estructuras
-}
+        // ==================== INICIO DEL JUEGO ====================
+        function startGame() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            setupControls();
+            generateWorld();
+            setupInventory();
+            setupShop();
+            setupBuildMenu();
+            
+            document.getElementById('playerNameHUD').textContent = currentUsername;
+            updateHUD();
+            
+            listenToPlayers();
+            listenToWorld();
+            listenToAlliances();
+            
+            gameRunning = true;
+            gameLoop();
+            
+            setInterval(updatePlayerPosition, 100);
+            setInterval(syncWithServer, 5000);
+        }
 
-function updatePlayersList() {
-    const content = document.getElementById('playersListContent');
-    content.innerHTML = '';
-    
-    players.forEach((player, id) => {
-        const item = document.createElement('div');
-        item.className = 'player-item';
-        item.textContent = `${player.username} ${player.alliance ? '⚔️' : ''}`;
-        item.onclick = () => showPlayerInfo(player);
-        content.appendChild(item);
-    });
-}
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            camera.width = canvas.width / camera.zoom;
+            camera.height = canvas.height / camera.zoom;
+        }
 
-function updateHUD() {
-    document.getElementById('healthBar').style.width = (localPlayer.health / localPlayer.maxHealth * 100) + '%';
-    document.getElementById('goldAmount').textContent = localPlayer.gold;
-}
+        // ==================== CONTROLES ====================
+        function setupControls() {
+            // Teclado
+            window.addEventListener('keydown', (e) => {
+                keys[e.key] = true;
+                
+                if (e.key === 'e' || e.key === 'E') {
+                    interact();
+                }
+                
+                if (e.key === 'Enter' && document.getElementById('chatInput').style.display === 'block') {
+                    sendChatMessage();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                keys[e.key] = false;
+            });
+            
+            // Mouse
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = (e.clientX - rect.left) / camera.zoom;
+                mouseY = (e.clientY - rect.top) / camera.zoom;
+            });
+            
+            canvas.addEventListener('click', (e) => {
+                const worldX = camera.x + (e.clientX - canvas.getBoundingClientRect().left) / camera.zoom;
+                const worldY = camera.y + (e.clientY - canvas.getBoundingClientRect().top) / camera.zoom;
+                handleWorldClick(worldX, worldY);
+            });
+            
+            // Joystick móvil
+            const joystick = document.getElementById('joystick');
+            const joystickInner = document.getElementById('joystickInner');
+            
+            joystick.addEventListener('touchstart', handleJoystickStart);
+            joystick.addEventListener('touchmove', handleJoystickMove);
+            joystick.addEventListener('touchend', handleJoystickEnd);
+            
+            function handleJoystickStart(e) {
+                e.preventDefault();
+                joystickActive = true;
+            }
+            
+            function handleJoystickMove(e) {
+                if (!joystickActive) return;
+                e.preventDefault();
+                
+                const rect = joystick.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const touch = e.touches[0];
+                const x = touch.clientX - rect.left - centerX;
+                const y = touch.clientY - rect.top - centerY;
+                
+                const distance = Math.sqrt(x * x + y * y);
+                const maxDistance = 35;
+                
+                if (distance > maxDistance) {
+                    joystickDelta.x = (x / distance) * maxDistance;
+                    joystickDelta.y = (y / distance) * maxDistance;
+                } else {
+                    joystickDelta.x = x;
+                    joystickDelta.y = y;
+                }
+                
+                joystickInner.style.transform = `translate(calc(-50% + ${joystickDelta.x}px), calc(-50% + ${joystickDelta.y}px))`;
+            }
+            
+            function handleJoystickEnd(e) {
+                e.preventDefault();
+                joystickActive = false;
+                joystickDelta = { x: 0, y: 0 };
+                joystickInner.style.transform = 'translate(-50%, -50%)';
+            }
+            
+            // Botones de acción móviles
+            document.getElementById('actionBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                interact();
+            });
+            
+            document.getElementById('attackBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                attack();
+            });
+            
+            document.getElementById('magicBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                useMagic();
+            });
+            
+            // Chat
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+        }
 
-// Continúa en la Parte 3...   
-    // SEGUIDO DE TODO EL CÓDIGO DE LA PARTE 3
-        // PARTE 3: JAVASCRIPT - RENDERIZADO Y FUNCIONES DEL JUEGO
-// Pega esto después de la Parte 2
+        // ==================== GENERACIÓN DEL MUNDO MEJORADA ====================
+        function generateWorld() {
+            worldData.tiles = [];
+            
+            // Generar terreno más plano con más tierra
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                worldData.tiles[y] = [];
+                for (let x = 0; x < WORLD_WIDTH; x++) {
+                    let tile;
+                    const baseNoise = perlinNoise(x / 50, y / 50); // Usar Perlin noise para terreno suave
+                    if (baseNoise < 0.2) {
+                        tile = { type: 'water', walkable: true, speedMultiplier: 0.5 }; // Lagos agrupados
+                    } else if (baseNoise < 0.4) {
+                        tile = { type: 'dirt', walkable: true };
+                    } else if (baseNoise < 0.45) {
+                        tile = { type: 'stone', walkable: true, resource: 'stone' }; // Rocas agrupadas
+                    } else if (baseNoise < 0.5) {
+                        tile = { type: 'tree', walkable: false, resource: 'wood' }; // Árboles agrupados
+                    } else {
+                        tile = { type: 'grass', walkable: true };
+                    }
+                    worldData.tiles[y][x] = tile;
+                }
+            }
+            
+            // Generar lagos más grandes
+            for (let i = 0; i < 5; i++) {
+                const lakeX = Math.floor(Math.random() * WORLD_WIDTH);
+                const lakeY = Math.floor(Math.random() * WORLD_HEIGHT);
+                createLake(lakeX, lakeY, 10 + Math.random() * 20);
+            }
 
-// ==================== LOOP PRINCIPAL ====================
-function gameLoop() {
-    if (!gameRunning) return;
-    
-    updatePlayer();
-    updateCamera();
-    render();
-    
-    requestAnimationFrame(gameLoop);
-}
-
-function updatePlayer() {
-    // Movimiento con teclado
-    localPlayer.vx = 0;
-    localPlayer.vy = 0;
-    
-    if (keys['w'] || keys['W'] || keys['ArrowUp']) localPlayer.vy = -localPlayer.speed;
-    if (keys['s'] || keys['S'] || keys['ArrowDown']) localPlayer.vy = localPlayer.speed;
-    if (keys['a'] || keys['A'] || keys['ArrowLeft']) localPlayer.vx = -localPlayer.speed;
-    if (keys['d'] || keys['D'] || keys['ArrowRight']) localPlayer.vx = localPlayer.speed;
-    
-    // Movimiento con joystick
-    if (joystickActive) {
-        localPlayer.vx = (joystickDelta.x / 35) * localPlayer.speed;
-        localPlayer.vy = (joystickDelta.y / 35) * localPlayer.speed;
-    }
-    
-    // Normalizar diagonal
-    if (localPlayer.vx !== 0 && localPlayer.vy !== 0) {
-        const factor = Math.sqrt(2) / 2;
-        localPlayer.vx *= factor;
-        localPlayer.vy *= factor;
-    }
-    
-    // Aplicar movimiento con colisiones
-    const newX = localPlayer.x + localPlayer.vx;
-    const newY = localPlayer.y + localPlayer.vy;
-    
-    if (canWalk(newX, localPlayer.y)) {
-        localPlayer.x = newX;
-    }
-    if (canWalk(localPlayer.x, newY)) {
-        localPlayer.y = newY;
-    }
-    
-    // Límites del mundo
-    localPlayer.x = Math.max(0, Math.min(localPlayer.x, WORLD_WIDTH * TILE_SIZE - TILE_SIZE));
-    localPlayer.y = Math.max(0, Math.min(localPlayer.y, WORLD_HEIGHT * TILE_SIZE - TILE_SIZE));
-}
-
-function canWalk(x, y) {
-    const tileX = Math.floor(x / TILE_SIZE);
-    const tileY = Math.floor(y / TILE_SIZE);
-    
-    if (tileX < 0 || tileX >= WORLD_WIDTH || tileY < 0 || tileY >= WORLD_HEIGHT) {
-        return false;
-    }
-    
-    const tile = worldData.tiles[tileY][tileX];
-    return tile.walkable;
-}
-
-function updateCamera() {
-    camera.x = localPlayer.x - camera.width / 2;
-    camera.y = localPlayer.y - camera.height / 2;
-    
-    camera.x = Math.max(0, Math.min(camera.x, WORLD_WIDTH * TILE_SIZE - camera.width));
-    camera.y = Math.max(0, Math.min(camera.y, WORLD_HEIGHT * TILE_SIZE - camera.height));
-}
-
-// ==================== RENDERIZADO ====================
-function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Calcular tiles visibles
-    const startTileX = Math.floor(camera.x / TILE_SIZE);
-    const endTileX = Math.ceil((camera.x + camera.width) / TILE_SIZE);
-    const startTileY = Math.floor(camera.y / TILE_SIZE);
-    const endTileY = Math.ceil((camera.y + camera.height) / TILE_SIZE);
-    
-    // Renderizar tiles
-    for (let y = startTileY; y < endTileY; y++) {
-        for (let x = startTileX; x < endTileX; x++) {
-            if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) {
-                const tile = worldData.tiles[y][x];
-                const screenX = x * TILE_SIZE - camera.x;
-                const screenY = y * TILE_SIZE - camera.y;
-                drawTile(ctx, tile, screenX, screenY);
+            // Generar algunos NPCs
+            for (let i = 0; i < 10; i++) {
+                worldData.npcs.push({
+                    id: 'npc_' + i,
+                    x: Math.random() * WORLD_WIDTH * TILE_SIZE,
+                    y: Math.random() * WORLD_HEIGHT * TILE_SIZE,
+                    type: Math.random() > 0.5 ? 'villager' : 'merchant',
+                    health: 50
+                });
             }
         }
-    }
-    
-    // Renderizar edificios
-    worldData.buildings.forEach(building => {
-        const screenX = building.x - camera.x;
-        const screenY = building.y - camera.y;
-        if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
-            drawBuilding(ctx, building.type, screenX, screenY, TILE_SIZE * 2);
+
+        function perlinNoise(x, y) {
+            // Función simple de Perlin noise (implementación básica)
+            return (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
         }
-    });
-    
-    // Renderizar items
-    worldData.items.forEach(item => {
-        const screenX = item.x - camera.x;
-        const screenY = item.y - camera.y;
-        if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
-            drawItem(ctx, item.type, screenX, screenY, TILE_SIZE);
+
+        function createLake(centerX, centerY, radius) {
+            for (let y = -radius; y <= radius; y++) {
+                for (let x = -radius; x <= radius; x++) {
+                    if (x*x + y*y <= radius*radius && centerX + x >= 0 && centerX + x < WORLD_WIDTH && centerY + y >= 0 && centerY + y < WORLD_HEIGHT) {
+                        worldData.tiles[centerY + y][centerX + x] = { type: 'water', walkable: true, speedMultiplier: 0.5 };
+                    }
+                }
+            }
         }
-    });
-    
-    // Renderizar NPCs
-    worldData.npcs.forEach(npc => {
-        const screenX = npc.x - camera.x;
-        const screenY = npc.y - camera.y;
-        if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
-            drawNPC(ctx, npc, screenX, screenY);
+
+        // ==================== INVENTARIO ====================
+        function setupInventory() {
+            const inventory = document.getElementById('inventory');
+            inventory.innerHTML = '';
+            
+            localPlayer.inventory = [
+                { type: 'wood', count: 10 },
+                { type: 'stone', count: 5 },
+                { type: 'sword', count: 1 },
+                { type: 'pickaxe', count: 1 },
+                { type: 'shovel', count: 1 }, // Añadida pala
+                { type: 'food', count: 3 }
+            ];
+            
+            for (let i = 0; i < 8; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot';
+                if (i === localPlayer.selectedSlot) slot.classList.add('active');
+                
+                slot.onclick = () => selectSlot(i);
+                
+                if (localPlayer.inventory[i]) {
+                    const itemCanvas = document.createElement('canvas');
+                    itemCanvas.width = 40;
+                    itemCanvas.height = 40;
+                    const itemCtx = itemCanvas.getContext('2d');
+                    drawItem(itemCtx, localPlayer.inventory[i].type, 0, 0, 40);
+                    slot.appendChild(itemCanvas);
+                    
+                    const count = document.createElement('div');
+                    count.className = 'item-count';
+                    count.textContent = localPlayer.inventory[i].count;
+                    slot.appendChild(count);
+                }
+                
+                inventory.appendChild(slot);
+            }
         }
-    });
-    
-    // Renderizar otros jugadores
-    players.forEach((player, id) => {
-        const screenX = player.x - camera.x;
-        const screenY = player.y - camera.y;
-        if (screenX > -50 && screenX < camera.width && screenY > -50 && screenY < camera.height) {
-            drawPlayer(ctx, player, screenX, screenY);
+
+        function selectSlot(index) {
+            localPlayer.selectedSlot = index;
+            setupInventory();
+        }
+
+        // ==================== MENÚS ====================
+        window.toggleBuildMenu = function() {
+            const menu = document.getElementById('buildMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.toggleCharacterMenu = function() {
+            const menu = document.getElementById('characterMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            if (menu.style.display === 'block') {
+                updateCharacterPreview();
+            }
+        };
+
+        window.toggleShopMenu = function() {
+            const menu = document.getElementById('shopMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.toggleAllianceMenu = function() {
+            const menu = document.getElementById('allianceMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            updateAllianceInfo();
+        };
+
+        window.togglePlayersList = function() {
+            const list = document.getElementById('playersList');
+            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.toggleChat = function() {
+            const chat = document.getElementById('chatBox');
+            const input = document.getElementById('chatInput');
+            const isVisible = chat.style.display === 'block';
+            chat.style.display = isVisible ? 'none' : 'block';
+            input.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) input.focus();
+        };
+
+        window.toggleAllianceList = function() {
+            const list = document.getElementById('allianceList');
+            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+            updateAllianceList();
+        };
+
+        function setupBuildMenu() {
+            const grid = document.getElementById('buildGrid');
+            const buildItems = [
+                { type: 'wall', name: 'Muro', cost: 5 },
+                { type: 'floor', name: 'Suelo', cost: 3 },
+                { type: 'door', name: 'Puerta', cost: 8 },
+                { type: 'chest', name: 'Cofre', cost: 10 },
+                { type: 'furnace', name: 'Horno', cost: 15 },
+                { type: 'bed', name: 'Cama', cost: 12 },
+                { type: 'table', name: 'Mesa', cost: 6 },
+                { type: 'chair', name: 'Silla', cost: 4 }
+            ];
+            
+            buildItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'build-item';
+                div.innerHTML = `
+                    <canvas width="40" height="40"></canvas>
+                    <div>${item.name}</div>
+                    <div style="color: #ffff00;">${item.cost} madera</div>
+                `;
+                const canvas = div.querySelector('canvas');
+                const ctx = canvas.getContext('2d');
+                drawBuilding(ctx, item.type, 0, 0, 40);
+                
+                div.onclick = () => placeBuilding(item.type, item.cost);
+                grid.appendChild(div);
+            });
+        }
+
+        function setupShop() {
+            const grid = document.getElementById('shopGrid');
+            const shopItems = [
+                { type: 'sword', name: 'Espada', price: 50 },
+                { type: 'armor', name: 'Armadura', price: 100 },
+                { type: 'bow', name: 'Arco', price: 75 },
+                { type: 'potion', name: 'Poción', price: 20 },
+                { type: 'food', name: 'Comida', price: 10 },
+                { type: 'pickaxe', name: 'Pico', price: 30 },
+                { type: 'shovel', name: 'Pala', price: 30 }
+            ];
+            
+            shopItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <canvas width="40" height="40"></canvas>
+                    <div>${item.name}</div>
+                    <div class="shop-price">💰 ${item.price}</div>
+                `;
+                const canvas = div.querySelector('canvas');
+                const ctx = canvas.getContext('2d');
+                drawItem(ctx, item.type, 0, 0, 40);
+                
+                div.onclick = () => buyItem(item.type, item.price);
+                grid.appendChild(div);
+            });
+        }
+
+        // ==================== ACTUALIZACIÓN ====================
+        async function updatePlayerPosition() {
+            if (!currentUser || !gameRunning) return;
+            
+            try {
+                await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+                    x: localPlayer.x,
+                    y: localPlayer.y,
+                    health: localPlayer.health,
+                    customization: localPlayer.customization,
+                    lastUpdate: Date.now()
+                });
+            } catch (error) {
+                console.error("Error actualizando posición:", error);
+            }
+        }
+
+        async function syncWithServer() {
+            if (!currentUser) return;
+            
+            try {
+                await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+                    gold: localPlayer.gold,
+                    inventory: localPlayer.inventory,
+                    alliance: localPlayer.alliance,
+                    online: true,
+                    lastUpdate: Date.now()
+                });
+            } catch (error) {
+                console.error("Error sincronizando:", error);
+            }
+        }
+
+        function listenToPlayers() {
+            const q = query(collection(db, "pixelworld_players"), where("online", "==", true));
+            playersListener = onSnapshot(q, (snapshot) => {
+                players.clear();
+                let onlineCount = 0;
+                
+                snapshot.forEach((doc) => {
+                    if (doc.id !== currentUser.uid) {
+                        const data = doc.data();
+                        if (Date.now() - data.lastUpdate < 30000) {
+                            players.set(doc.id, data);
+                            onlineCount++;
+                        }
+                    }
+                });
+                
+                document.getElementById('onlineCount').textContent = onlineCount + 1;
+                updatePlayersList();
+            });
+        }
+
+        function listenToWorld() {
+            // Escuchar cambios en edificios y estructuras
+        }
+
+        function listenToAlliances() {
+            const q = query(collection(db, "pixelworld_alliances"));
+            alliancesListener = onSnapshot(q, (snapshot) => {
+                // Actualizar lista de alianzas
+            });
+        }
+
+        function updatePlayersList() {
+            const content = document.getElementById('playersListContent');
+            content.innerHTML = '';
+            
+            players.forEach((player, id) => {
+                const item = document.createElement('div');
+                item.className = 'player-item';
+                item.textContent = `${player.username} ${player.alliance ? '⚔️ ' + player.alliance.name : ''}`;
+                item.onclick = () => showPlayerInfo(player, id);
+                content.appendChild(item);
+            });
+        }
+
+        function updateAllianceList() {
+            const content = document.getElementById('allianceListContent');
+            content.innerHTML = '';
+            
+            // Asumiendo que hay una colección 'pixelworld_alliances'
+            // Llenar con datos de alianzas
+        }
+
+        function updateHUD() {
+            document.getElementById('healthBar').style.width = (localPlayer.health / localPlayer.maxHealth * 100) + '%';
+            document.getElementById('goldAmount').textContent = localPlayer.gold;
+        }
+
+        // ==================== LOOP PRINCIPAL ====================
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            updatePlayer();
+            updateCamera();
+            render();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updatePlayer() {
+            // Movimiento con teclado
+            localPlayer.vx = 0;
+            localPlayer.vy = 0;
+            
+            if (keys['w'] || keys['W'] || keys['ArrowUp']) localPlayer.vy = -localPlayer.speed;
+            if (keys['s'] || keys['S'] || keys['ArrowDown']) localPlayer.vy = localPlayer.speed;
+            if (keys['a'] || keys['A'] || keys['ArrowLeft']) localPlayer.vx = -localPlayer.speed;
+            if (keys['d'] || keys['D'] || keys['ArrowRight']) localPlayer.vx = localPlayer.speed;
+            
+            // Movimiento con joystick
+            if (joystickActive) {
+                localPlayer.vx = (joystickDelta.x / 35) * localPlayer.speed;
+                localPlayer.vy = (joystickDelta.y / 35) * localPlayer.speed;
+            }
+            
+            // Normalizar diagonal
+            if (localPlayer.vx !== 0 && localPlayer.vy !== 0) {
+                const factor = Math.sqrt(2) / 2;
+                localPlayer.vx *= factor;
+                localPlayer.vy *= factor;
+            }
+            
+            // Aplicar multiplicador de velocidad por terreno
+            const tileX = Math.floor(localPlayer.x / TILE_SIZE);
+            const tileY = Math.floor(localPlayer.y / TILE_SIZE);
+            const tile = worldData.tiles[tileY][tileX];
+            const speedMult = tile.speedMultiplier || 1;
+            localPlayer.vx *= speedMult;
+            localPlayer.vy *= speedMult;
+            
+            // Aplicar movimiento con colisiones
+            const newX = localPlayer.x + localPlayer.vx;
+            const newY = localPlayer.y + localPlayer.vy;
+            
+            if (canWalk(newX, localPlayer.y)) {
+                localPlayer.x = newX;
+            }
+            if (canWalk(localPlayer.x, newY)) {
+                localPlayer.y = newY;
+            }
+            
+            // Límites del mundo
+            localPlayer.x = Math.max(0, Math.min(localPlayer.x, WORLD_WIDTH * TILE_SIZE - TILE_SIZE));
+            localPlayer.y = Math.max(0, Math.min(localPlayer.y, WORLD_HEIGHT * TILE_SIZE - TILE_SIZE));
+        }
+
+        function canWalk(x, y) {
+            const tileX = Math.floor(x / TILE_SIZE);
+            const tileY = Math.floor(y / TILE_SIZE);
+            
+            if (tileX < 0 || tileX >= WORLD_WIDTH || tileY < 0 || tileY >= WORLD_HEIGHT) {
+                return false;
+            }
+            
+            const tile = worldData.tiles[tileY][tileX];
+            return tile.walkable;
+        }
+
+        function updateCamera() {
+            camera.x = localPlayer.x - camera.width / 2;
+            camera.y = localPlayer.y - camera.height / 2;
+            
+            camera.x = Math.max(0, Math.min(camera.x, WORLD_WIDTH * TILE_SIZE - camera.width));
+            camera.y = Math.max(0, Math.min(camera.y, WORLD_HEIGHT * TILE_SIZE - camera.height));
+        }
+
+        // ==================== RENDERIZADO ====================
+        function render() {
+            ctx.save();
+            ctx.scale(camera.zoom, camera.zoom);
+            ctx.clearRect(0, 0, canvas.width / camera.zoom, canvas.height / camera.zoom);
+            
+            // Calcular tiles visibles
+            const startTileX = Math.floor(camera.x / TILE_SIZE);
+            const endTileX = Math.ceil((camera.x + camera.width) / TILE_SIZE);
+            const startTileY = Math.floor(camera.y / TILE_SIZE);
+            const endTileY = Math.ceil((camera.y + camera.height) / TILE_SIZE);
+            
+            // Renderizar tiles
+            for (let y = startTileY; y < endTileY; y++) {
+                for (let x = startTileX; x < endTileX; x++) {
+                    if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) {
+                        const tile = worldData.tiles[y][x];
+                        const screenX = x * TILE_SIZE - camera.x;
+                        const screenY = y * TILE_SIZE - camera.y;
+                        drawTile(ctx, tile, screenX, screenY);
+                    }
+                }
+            }
+            
+            // Renderizar edificios
+            worldData.buildings.forEach(building => {
+                const screenX = building.x - camera.x;
+                const screenY = building.y - camera.y;
+                if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
+                    drawBuilding(ctx, building.type, screenX, screenY, TILE_SIZE * 2);
+                }
+            });
+            
+            // Renderizar items
+            worldData.items.forEach(item => {
+                const screenX = item.x - camera.x;
+                const screenY = item.y - camera.y;
+                if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
+                    drawItem(ctx, item.type, screenX, screenY, TILE_SIZE);
+                }
+            });
+            
+            // Renderizar NPCs con animación
+            worldData.npcs.forEach(npc => {
+                const screenX = npc.x - camera.x;
+                const screenY = npc.y - camera.y;
+                if (screenX > -TILE_SIZE && screenX < camera.width && screenY > -TILE_SIZE && screenY < camera.height) {
+                    drawNPC(ctx, npc, screenX, screenY);
+                }
+            });
+            
+            // Renderizar otros jugadores con animación
+            players.forEach((player, id) => {
+                const screenX = player.x - camera.x;
+                const screenY = player.y - camera.y;
+                if (screenX > -50 && screenX < camera.width && screenY > -50 && screenY < camera.height) {
+                    drawPlayer(ctx, player, screenX, screenY, true); // Con animación
+                    
+                    // Nombre del jugador
+                    ctx.fillStyle = '#fff';
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2 / camera.zoom;
+                    ctx.font = '12px "Courier New"';
+                    ctx.textAlign = 'center';
+                    ctx.strokeText(player.username, screenX + TILE_SIZE / 2, screenY - 5);
+                    ctx.fillText(player.username, screenX + TILE_SIZE / 2, screenY - 5);
+                }
+            });
+            
+            // Renderizar jugador local con animación
+            const playerScreenX = localPlayer.x - camera.x;
+            const playerScreenY = localPlayer.y - camera.y;
+            drawPlayer(ctx, localPlayer, playerScreenX, playerScreenY, true);
             
             // Nombre del jugador
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = '#ffff00';
             ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-            ctx.font = '12px "Courier New"';
+            ctx.lineWidth = 2 / camera.zoom;
+            ctx.font = 'bold 12px "Courier New"';
             ctx.textAlign = 'center';
-            ctx.strokeText(player.username, screenX + TILE_SIZE / 2, screenY - 5);
-            ctx.fillText(player.username, screenX + TILE_SIZE / 2, screenY - 5);
+            ctx.strokeText(currentUsername, playerScreenX + TILE_SIZE / 2, playerScreenY - 5);
+            ctx.fillText(currentUsername, playerScreenX + TILE_SIZE / 2, playerScreenY - 5);
+            
+            ctx.restore();
         }
-    });
-    
-    // Renderizar jugador local
-    const playerScreenX = localPlayer.x - camera.x;
-    const playerScreenY = localPlayer.y - camera.y;
-    drawPlayer(ctx, localPlayer, playerScreenX, playerScreenY);
-    
-    // Nombre del jugador
-    ctx.fillStyle = '#ffff00';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2;
-    ctx.font = 'bold 12px "Courier New"';
-    ctx.textAlign = 'center';
-    ctx.strokeText(currentUsername, playerScreenX + TILE_SIZE / 2, playerScreenY - 5);
-    ctx.fillText(currentUsername, playerScreenX + TILE_SIZE / 2, playerScreenY - 5);
-}
 
-// ==================== DIBUJO DE TILES (ESTILO WORLDBOX) ====================
-function drawTile(context, tile, x, y) {
-    const size = TILE_SIZE;
-    
-    switch(tile.type) {
-        case 'grass':
-            // Césped verde con textura
-            context.fillStyle = '#6b8e23';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#7fa32e';
-            context.fillRect(x + 2, y + 2, size - 4, size - 4);
-            // Detalles de hierba
-            for (let i = 0; i < 3; i++) {
-                context.fillStyle = '#5a7a1f';
-                context.fillRect(x + Math.random() * size, y + Math.random() * size, 2, 2);
+        // ==================== DIBUJO DE TILES ====================
+        function drawTile(context, tile, x, y) {
+            const size = TILE_SIZE;
+            
+            if (textureMode === 'realistic') {
+                switch(tile.type) {
+                    case 'grass':
+                        context.fillStyle = '#6b8e23';
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = '#7fa32e';
+                        context.fillRect(x + 2, y + 2, size - 4, size - 4);
+                        for (let i = 0; i < 3; i++) {
+                            context.fillStyle = '#5a7a1f';
+                            context.fillRect(x + Math.random() * size, y + Math.random() * size, 2, 2);
+                        }
+                        break;
+                        
+                    case 'dirt':
+                        context.fillStyle = '#8b7355';
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = '#9b8365';
+                        context.fillRect(x + 2, y + 2, size - 4, size - 4);
+                        break;
+                        
+                    case 'water':
+                        const waterShade = Math.sin(Date.now() / 500 + x + y) * 20 + 70;
+                        context.fillStyle = `rgb(64, 164, ${waterShade + 210})`;
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                        context.fillRect(x + 4, y + 4, size - 8, size - 8);
+                        break;
+                        
+                    case 'tree':
+                        context.fillStyle = '#6b8e23';
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = '#654321';
+                        context.fillRect(x + 6, y + 8, 4, 8);
+                        context.fillStyle = '#228b22';
+                        context.fillRect(x + 2, y + 2, 12, 10);
+                        context.fillStyle = '#2ea02e';
+                        context.fillRect(x + 4, y + 4, 8, 6);
+                        break;
+                        
+                    case 'stone':
+                        context.fillStyle = '#6b8e23';
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = '#808080';
+                        context.fillRect(x + 3, y + 5, 10, 8);
+                        context.fillStyle = '#a0a0a0';
+                        context.fillRect(x + 4, y + 6, 8, 6);
+                        context.fillStyle = '#606060';
+                        context.fillRect(x + 3, y + 11, 10, 2);
+                        break;
+                }
+            } else { // minimalist
+                switch(tile.type) {
+                    case 'grass':
+                        context.fillStyle = '#6b8e23';
+                        context.fillRect(x, y, size, size);
+                        break;
+                    case 'dirt':
+                        context.fillStyle = '#8b7355';
+                        context.fillRect(x, y, size, size);
+                        break;
+                    case 'water':
+                        context.fillStyle = '#0000ff';
+                        context.fillRect(x, y, size, size);
+                        break;
+                    case 'tree':
+                        context.fillStyle = '#228b22';
+                        context.fillRect(x, y, size, size);
+                        break;
+                    case 'stone':
+                        context.fillStyle = '#808080';
+                        context.fillRect(x, y, size, size);
+                        break;
+                }
             }
-            break;
-            
-        case 'dirt':
-            // Tierra marrón
-            context.fillStyle = '#8b7355';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#9b8365';
-            context.fillRect(x + 2, y + 2, size - 4, size - 4);
-            break;
-            
-        case 'water':
-            // Agua azul animada
-            const waterShade = Math.sin(Date.now() / 500 + x + y) * 20 + 70;
-            context.fillStyle = `rgb(64, 164, ${waterShade + 210})`;
-            context.fillRect(x, y, size, size);
-            context.fillStyle = 'rgba(255, 255, 255, 0.2)';
-            context.fillRect(x + 4, y + 4, size - 8, size - 8);
-            break;
-            
-        case 'tree':
-            // Césped base
-            context.fillStyle = '#6b8e23';
-            context.fillRect(x, y, size, size);
-            // Tronco
-            context.fillStyle = '#654321';
-            context.fillRect(x + 6, y + 8, 4, 8);
-            // Copa del árbol
-            context.fillStyle = '#228b22';
-            context.fillRect(x + 2, y + 2, 12, 10);
-            context.fillStyle = '#2ea02e';
-            context.fillRect(x + 4, y + 4, 8, 6);
-            break;
-            
-        case 'stone':
-            // Césped con roca
-            context.fillStyle = '#6b8e23';
-            context.fillRect(x, y, size, size);
-            // Roca
-            context.fillStyle = '#808080';
-            context.fillRect(x + 3, y + 5, 10, 8);
-            context.fillStyle = '#a0a0a0';
-            context.fillRect(x + 4, y + 6, 8, 6);
-            context.fillStyle = '#606060';
-            context.fillRect(x + 3, y + 11, 10, 2);
-            break;
-    }
-}
-
-// ==================== DIBUJO DE JUGADORES ====================
-function drawPlayer(context, player, x, y) {
-    const size = TILE_SIZE;
-    const custom = player.customization;
-    
-    // Sombra
-    context.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    context.fillRect(x + 2, y + size - 2, size - 4, 3);
-    
-    // Piernas
-    context.fillStyle = custom.clothesColor;
-    context.fillRect(x + 4, y + 10, 3, 6);
-    context.fillRect(x + 9, y + 10, 3, 6);
-    
-    // Cuerpo
-    context.fillStyle = custom.clothesColor;
-    context.fillRect(x + 3, y + 4, 10, 7);
-    
-    // Brazos
-    context.fillStyle = custom.skinColor;
-    context.fillRect(x + 1, y + 5, 2, 5);
-    context.fillRect(x + 13, y + 5, 2, 5);
-    
-    // Cabeza
-    context.fillStyle = custom.skinColor;
-    context.fillRect(x + 4, y + 1, 8, 6);
-    
-    // Ojos
-    context.fillStyle = '#000';
-    context.fillRect(x + 5, y + 3, 2, 1);
-    context.fillRect(x + 9, y + 3, 2, 1);
-    
-    // Cabello
-    if (custom.hairStyle === 'short') {
-        context.fillStyle = custom.hairColor;
-        context.fillRect(x + 4, y, 8, 2);
-    } else if (custom.hairStyle === 'long') {
-        context.fillStyle = custom.hairColor;
-        context.fillRect(x + 4, y, 8, 2);
-        context.fillRect(x + 3, y + 1, 2, 4);
-        context.fillRect(x + 11, y + 1, 2, 4);
-    }
-    
-    // Efecto de poder mágico
-    if (custom.magicPower !== 'none') {
-        const time = Date.now() / 200;
-        const offset = Math.sin(time) * 2;
-        
-        let color;
-        switch(custom.magicPower) {
-            case 'fire': color = '#ff4500'; break;
-            case 'water': color = '#1e90ff'; break;
-            case 'earth': color = '#8b4513'; break;
-            case 'wind': color = '#e0e0e0'; break;
         }
-        
-        context.fillStyle = color;
-        context.globalAlpha = 0.6;
-        context.fillRect(x - 2 + offset, y + 2, 2, 2);
-        context.fillRect(x + size, y + 4 - offset, 2, 2);
-        context.globalAlpha = 1;
-    }
-}
 
-// ==================== DIBUJO DE NPCs ====================
-function drawNPC(context, npc, x, y) {
-    const size = TILE_SIZE;
-    
-    if (npc.type === 'villager') {
-        // Aldeano simple
-        context.fillStyle = '#d2b48c';
-        context.fillRect(x + 3, y + 4, 10, 10);
-        context.fillStyle = '#8b7355';
-        context.fillRect(x + 4, y + 1, 8, 6);
-        context.fillStyle = '#000';
-        context.fillRect(x + 5, y + 3, 2, 1);
-        context.fillRect(x + 9, y + 3, 2, 1);
-    } else if (npc.type === 'merchant') {
-        // Mercader
-        context.fillStyle = '#800080';
-        context.fillRect(x + 3, y + 4, 10, 10);
-        context.fillStyle = '#daa520';
-        context.fillRect(x + 4, y + 1, 8, 6);
-        context.fillStyle = '#000';
-        context.fillRect(x + 5, y + 3, 2, 1);
-        context.fillRect(x + 9, y + 3, 2, 1);
-        // Sombrero
-        context.fillStyle = '#8b4513';
-        context.fillRect(x + 3, y - 1, 10, 2);
-    }
-}
-
-// ==================== DIBUJO DE EDIFICIOS ====================
-function drawBuilding(context, type, x, y, size) {
-    switch(type) {
-        case 'wall':
-            context.fillStyle = '#8b7355';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#654321';
-            context.fillRect(x + 2, y + 2, size - 4, size - 4);
-            break;
+        // ==================== DIBUJO DE JUGADORES CON ANIMACIÓN ====================
+        function drawPlayer(context, player, x, y, animate = false) {
+            const size = TILE_SIZE;
+            const custom = player.customization;
+            const time = Date.now() / 1000;
             
-        case 'door':
-            context.fillStyle = '#654321';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#8b7355';
-            context.fillRect(x + 4, y + 4, size - 8, size - 8);
-            break;
-            
-        case 'chest':
-            context.fillStyle = '#8b4513';
-            context.fillRect(x, y, size, size * 0.7);
-            context.fillStyle = '#654321';
-            context.fillRect(x + 2, y + 2, size - 4, size * 0.7 - 4);
-            context.fillStyle = '#ffd700';
-            context.fillRect(x + size / 2 - 2, y + size * 0.35, 4, 4);
-            break;
-            
-        case 'furnace':
-            context.fillStyle = '#696969';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#ff4500';
-            context.fillRect(x + size / 4, y + size / 3, size / 2, size / 3);
-            break;
-            
-        case 'bed':
-            context.fillStyle = '#8b4513';
-            context.fillRect(x, y, size, size * 0.8);
-            context.fillStyle = '#dc143c';
-            context.fillRect(x + 2, y + 2, size - 4, size * 0.8 - 4);
-            break;
-            
-        case 'table':
-            context.fillStyle = '#8b4513';
-            context.fillRect(x, y + size * 0.3, size, size * 0.4);
-            context.fillRect(x + 2, y + size * 0.7, 4, size * 0.3);
-            context.fillRect(x + size - 6, y + size * 0.7, 4, size * 0.3);
-            break;
-            
-        case 'chair':
-            context.fillStyle = '#8b4513';
-            context.fillRect(x + size * 0.2, y + size * 0.5, size * 0.6, size * 0.3);
-            context.fillRect(x + size * 0.2, y + size * 0.8, 4, size * 0.2);
-            context.fillRect(x + size * 0.6, y + size * 0.8, 4, size * 0.2);
-            context.fillRect(x + size * 0.2, y, size * 0.6, size * 0.3);
-            break;
-    }
-}
-
-// ==================== DIBUJO DE ITEMS ====================
-function drawItem(context, type, x, y, size) {
-    switch(type) {
-        case 'wood':
-            context.fillStyle = '#8b4513';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#654321';
-            for (let i = 0; i < 3; i++) {
-                context.fillRect(x + i * 4, y, 2, size);
+            // Animación de caminar
+            let legOffset = 0;
+            let armSwing = 0;
+            if (animate && (player.vx !== 0 || player.vy !== 0)) {
+                legOffset = Math.sin(time * 10) * 2;
+                armSwing = Math.cos(time * 10) * 2;
             }
-            break;
             
-        case 'stone':
-            context.fillStyle = '#808080';
-            context.fillRect(x, y, size, size);
-            context.fillStyle = '#a0a0a0';
-            context.fillRect(x + 2, y + 2, size - 4, size - 4);
-            break;
+            // Sombra
+            context.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            context.fillRect(x + 2, y + size - 2, size - 4, 3);
             
-        case 'sword':
-            context.fillStyle = '#c0c0c0';
-            context.fillRect(x + size * 0.4, y, size * 0.2, size * 0.7);
-            context.fillStyle = '#8b4513';
-            context.fillRect(x + size * 0.3, y + size * 0.7, size * 0.4, size * 0.3);
-            break;
+            // Piernas con animación
+            context.fillStyle = custom.clothesColor;
+            context.fillRect(x + 4, y + 10 + legOffset, 3, 6);
+            context.fillRect(x + 9, y + 10 - legOffset, 3, 6);
             
-        case 'pickaxe':
-            context.fillStyle = '#708090';
-            context.fillRect(x + 2, y, size - 4, size * 0.3);
-            context.fillStyle = '#8b4513';
-            context.fillRect(x + size * 0.45, y + size * 0.3, size * 0.1, size * 0.7);
-            break;
+            // Cuerpo
+            context.fillStyle = custom.clothesColor;
+            context.fillRect(x + 3, y + 4, 10, 7);
             
-        case 'food':
-            context.fillStyle = '#ff6347';
-            context.fillRect(x + size * 0.2, y + size * 0.2, size * 0.6, size * 0.6);
-            context.fillStyle = '#228b22';
-            context.fillRect(x + size * 0.4, y + size * 0.1, size * 0.2, size * 0.2);
-            break;
+            // Brazos con swing
+            context.fillStyle = custom.skinColor;
+            context.fillRect(x + 1 - armSwing, y + 5, 2, 5);
+            context.fillRect(x + 13 + armSwing, y + 5, 2, 5);
             
-        case 'armor':
-            context.fillStyle = '#4682b4';
-            context.fillRect(x + size * 0.2, y + size * 0.2, size * 0.6, size * 0.6);
-            context.fillStyle = '#b0c4de';
-            context.fillRect(x + size * 0.3, y + size * 0.3, size * 0.4, size * 0.4);
-            break;
+            // Cabeza
+            context.fillStyle = custom.skinColor;
+            context.fillRect(x + 4, y + 1, 8, 6);
             
-        case 'bow':
-            context.fillStyle = '#8b4513';
-            context.fillRect(x + size * 0.4, y, size * 0.1, size);
-            context.strokeStyle = '#654321';
-            context.lineWidth = 2;
-            context.beginPath();
-            context.arc(x + size * 0.45, y + size * 0.5, size * 0.4, -Math.PI / 2, Math.PI / 2);
-            context.stroke();
-            break;
+            // Ojos
+            context.fillStyle = '#000';
+            context.fillRect(x + 5, y + 3, 2, 1);
+            context.fillRect(x + 9, y + 3, 2, 1);
             
-        case 'potion':
-            context.fillStyle = '#8b008b';
-            context.fillRect(x + size * 0.3, y + size * 0.2, size * 0.4, size * 0.6);
-            context.fillStyle = '#ff00ff';
-            context.fillRect(x + size * 0.35, y + size * 0.25, size * 0.3, size * 0.5);
-            context.fillStyle = '#8b008b';
-            context.fillRect(x + size * 0.35, y + size * 0.1, size * 0.3, size * 0.15);
-            break;
-    }
-}
-
-// ==================== INTERACCIONES ====================
-function handleWorldClick(worldX, worldY) {
-    const tileX = Math.floor(worldX / TILE_SIZE);
-    const tileY = Math.floor(worldY / TILE_SIZE);
-    
-    if (tileX < 0 || tileX >= WORLD_WIDTH || tileY < 0 || tileY >= WORLD_HEIGHT) return;
-    
-    const tile = worldData.tiles[tileY][tileX];
-    
-    // Recolectar recursos
-    if (tile.resource) {
-        const item = localPlayer.inventory.find(i => i.type === tile.resource);
-        if (item) {
-            item.count++;
-        } else {
-            localPlayer.inventory.push({ type: tile.resource, count: 1 });
+            // Cabello
+            if (custom.hairStyle === 'short') {
+                context.fillStyle = custom.hairColor;
+                context.fillRect(x + 4, y, 8, 2);
+            } else if (custom.hairStyle === 'long') {
+                context.fillStyle = custom.hairColor;
+                context.fillRect(x + 4, y, 8, 2);
+                context.fillRect(x + 3, y + 1, 2, 4);
+                context.fillRect(x + 11, y + 1, 2, 4);
+            }
+            
+            // Efecto de poder mágico con animación
+            if (custom.magicPower !== 'none') {
+                const offset = Math.sin(time) * 2;
+                let color;
+                switch(custom.magicPower) {
+                    case 'fire': color = '#ff4500'; break;
+                    case 'water': color = '#1e90ff'; break;
+                    case 'earth': color = '#8b4513'; break;
+                    case 'wind': color = '#e0e0e0'; break;
+                }
+                
+                context.fillStyle = color;
+                context.globalAlpha = 0.6 + Math.sin(time * 2) * 0.2;
+                context.fillRect(x - 2 + offset, y + 2, 2, 2);
+                context.fillRect(x + size, y + 4 - offset, 2, 2);
+                context.globalAlpha = 1;
+            }
         }
-        
-        tile.type = 'grass';
-        tile.walkable = true;
-        delete tile.resource;
-        
-        setupInventory();
-        showNotification(`+1 ${tile.resource}`);
-    }
-}
 
-function interact() {
-    // Interactuar con NPCs cercanos
-    worldData.npcs.forEach(npc => {
-        const dist = Math.sqrt((npc.x - localPlayer.x) ** 2 + (npc.y - localPlayer.y) ** 2);
-        if (dist < 30) {
-            if (npc.type === 'merchant') {
-                toggleShopMenu();
+        // ==================== DIBUJO DE NPCs CON ANIMACIÓN ====================
+        function drawNPC(context, npc, x, y) {
+            const size = TILE_SIZE;
+            const time = Date.now() / 1000;
+            let bob = Math.sin(time) * 1; // Animación de bob
+            
+            if (npc.type === 'villager') {
+                context.fillStyle = '#d2b48c';
+                context.fillRect(x + 3, y + 4 + bob, 10, 10);
+                context.fillStyle = '#8b7355';
+                context.fillRect(x + 4, y + 1 + bob, 8, 6);
+                context.fillStyle = '#000';
+                context.fillRect(x + 5, y + 3 + bob, 2, 1);
+                context.fillRect(x + 9, y + 3 + bob, 2, 1);
+            } else if (npc.type === 'merchant') {
+                context.fillStyle = '#800080';
+                context.fillRect(x + 3, y + 4 + bob, 10, 10);
+                context.fillStyle = '#daa520';
+                context.fillRect(x + 4, y + 1 + bob, 8, 6);
+                context.fillStyle = '#000';
+                context.fillRect(x + 5, y + 3 + bob, 2, 1);
+                context.fillRect(x + 9, y + 3 + bob, 2, 1);
+                context.fillStyle = '#8b4513';
+                context.fillRect(x + 3, y - 1 + bob, 10, 2);
+            }
+        }
+
+        // ==================== DIBUJO DE EDIFICIOS ====================
+        function drawBuilding(context, type, x, y, size) {
+            if (textureMode === 'realistic') {
+                // Dibujo realista
+                switch(type) {
+                    case 'wall':
+                        context.fillStyle = '#8b7355';
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = '#654321';
+                        context.fillRect(x + 2, y + 2, size - 4, size - 4);
+                        break;
+                    // ... otros casos similares
+                }
             } else {
-                showNotification(`${npc.type}: ¡Hola, aventurero!`);
+                // Dibujo minimalista
+                switch(type) {
+                    case 'wall':
+                        context.fillStyle = '#8b7355';
+                        context.fillRect(x, y, size, size);
+                        break;
+                    // ... otros casos simples
+                }
             }
         }
-    });
-}
 
-function attack() {
-    // Atacar enemigos cercanos
-    worldData.npcs.forEach(npc => {
-        const dist = Math.sqrt((npc.x - localPlayer.x) ** 2 + (npc.y - localPlayer.y) ** 2);
-        if (dist < 40) {
-            npc.health -= 10;
-            showNotification('¡Golpe! -10 HP');
+        // ==================== DIBUJO DE ITEMS ====================
+        function drawItem(context, type, x, y, size) {
+            if (textureMode === 'realistic') {
+                // Dibujo realista
+                switch(type) {
+                    case 'wood':
+                        context.fillStyle = '#8b4513';
+                        context.fillRect(x, y, size, size);
+                        context.fillStyle = '#654321';
+                        for (let i = 0; i < 3; i++) {
+                            context.fillRect(x + i * 4, y, 2, size);
+                        }
+                        break;
+                    // ... otros
+                    case 'shovel':
+                        context.fillStyle = '#708090';
+                        context.fillRect(x + 2, y, size - 4, size * 0.3);
+                        context.fillStyle = '#8b4513';
+                        context.fillRect(x + size * 0.45, y + size * 0.3, size * 0.1, size * 0.7);
+                        break;
+                }
+            } else {
+                // Minimalista
+                switch(type) {
+                    case 'wood':
+                        context.fillStyle = '#8b4513';
+                        context.fillRect(x, y, size, size);
+                        break;
+                    // ... otros simples
+                }
+            }
+        }
+
+        // ==================== INTERACCIONES ====================
+        function handleWorldClick(worldX, worldY) {
+            const tileX = Math.floor(worldX / TILE_SIZE);
+            const tileY = Math.floor(worldY / TILE_SIZE);
             
-            if (npc.health <= 0) {
-                worldData.npcs = worldData.npcs.filter(n => n.id !== npc.id);
-                localPlayer.gold += 10;
-                updateHUD();
-                showNotification('+10 Oro');
+            if (tileX < 0 || tileX >= WORLD_WIDTH || tileY < 0 || tileY >= WORLD_HEIGHT) return;
+            
+            const tile = worldData.tiles[tileY][tileX];
+            const selectedItem = localPlayer.inventory[localPlayer.selectedSlot];
+            
+            if (selectedItem && selectedItem.type === 'shovel') {
+                // Aplanar con pala
+                tile.type = 'grass';
+                tile.walkable = true;
+                delete tile.resource;
+                showNotification('Terreno aplanado');
+            } else if (tile.resource) {
+                // Recolectar y agregar a inventario
+                const item = localPlayer.inventory.find(i => i.type === tile.resource);
+                if (item) {
+                    item.count++;
+                } else {
+                    localPlayer.inventory.push({ type: tile.resource, count: 1 });
+                }
+                
+                tile.type = 'grass';
+                tile.walkable = true;
+                delete tile.resource;
+                
+                setupInventory();
+                showNotification(`+1 ${tile.resource}`);
+            } else if (selectedItem && selectedItem.type.includes('block')) {
+                // Colocar bloques del inventario
+                tile.type = selectedItem.type;
+                selectedItem.count--;
+                if (selectedItem.count === 0) {
+                    localPlayer.inventory.splice(localPlayer.selectedSlot, 1);
+                }
+                setupInventory();
             }
         }
-    });
-}
 
-function placeBuilding(type, cost) {
-    const woodItem = localPlayer.inventory.find(i => i.type === 'wood');
-    
-    if (!woodItem || woodItem.count < cost) {
-        showNotification('No tienes suficiente madera');
-        return;
-    }
-    
-    woodItem.count -= cost;
-    if (woodItem.count === 0) {
-        localPlayer.inventory = localPlayer.inventory.filter(i => i.type !== 'wood');
-    }
-    
-    worldData.buildings.push({
-        type: type,
-        x: localPlayer.x,
-        y: localPlayer.y,
-        owner: currentUser.uid
-    });
-    
-    setupInventory();
-    toggleBuildMenu();
-    showNotification(`${type} construido!`);
-}
+        function interact() {
+            // Interactuar con NPCs cercanos
+            worldData.npcs.forEach(npc => {
+                const dist = Math.sqrt((npc.x - localPlayer.x) ** 2 + (npc.y - localPlayer.y) ** 2);
+                if (dist < 30) {
+                    if (npc.type === 'merchant') {
+                        toggleShopMenu();
+                    } else {
+                        showNotification(`${npc.type}: ¡Hola, aventurero!`);
+                    }
+                }
+            });
+        }
 
-function buyItem(type, price) {
-    if (localPlayer.gold < price) {
-        showNotification('No tienes suficiente oro');
-        return;
-    }
-    
-    localPlayer.gold -= price;
-    
-    const item = localPlayer.inventory.find(i => i.type === type);
-    if (item) {
-        item.count++;
-    } else {
-        localPlayer.inventory.push({ type: type, count: 1 });
-    }
-    
-    updateHUD();
-    setupInventory();
-    showNotification(`${type} comprado!`);
-}
+        function attack() {
+            // Atacar enemigos cercanos con animación
+            worldData.npcs.forEach(npc => {
+                const dist = Math.sqrt((npc.x - localPlayer.x) ** 2 + (npc.y - localPlayer.y) ** 2);
+                if (dist < 40) {
+                    npc.health -= 10;
+                    showNotification('¡Golpe! -10 HP');
+                    
+                    // Animación de daño
+                    ctx.save();
+                    ctx.fillStyle = 'red';
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillRect(npc.x - camera.x, npc.y - camera.y, TILE_SIZE, TILE_SIZE);
+                    ctx.restore();
+                    
+                    if (npc.health <= 0) {
+                        worldData.npcs = worldData.npcs.filter(n => n.id !== npc.id);
+                        localPlayer.gold += 10;
+                        updateHUD();
+                        showNotification('+10 Oro');
+                    }
+                }
+            });
+        }
 
-// ==================== PERSONALIZACIÓN ====================
-window.saveCharacter = async function() {
-    localPlayer.customization = {
-        skinColor: document.getElementById('skinColor').value,
-        clothesColor: document.getElementById('clothesColor').value,
-        hairStyle: document.getElementById('hairStyle').value,
-        hairColor: document.getElementById('hairColor').value,
-        magicPower: document.getElementById('magicPower').value
-    };
-    
-    if (currentUser) {
-        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
-            customization: localPlayer.customization
+        function useMagic() {
+            const power = localPlayer.customization.magicPower;
+            if (power === 'none') return;
+            
+            // Efecto mágico con animación
+            showNotification(`Usando magia de ${power}!`);
+            // Implementar efectos basados en poder
+        }
+
+        function placeBuilding(type, cost) {
+            const woodItem = localPlayer.inventory.find(i => i.type === 'wood');
+            
+            if (!woodItem || woodItem.count < cost) {
+                showNotification('No tienes suficiente madera');
+                return;
+            }
+            
+            woodItem.count -= cost;
+            if (woodItem.count === 0) {
+                localPlayer.inventory = localPlayer.inventory.filter(i => i.type !== 'wood');
+            }
+            
+            worldData.buildings.push({
+                type: type,
+                x: localPlayer.x,
+                y: localPlayer.y,
+                owner: currentUser.uid
+            });
+            
+            setupInventory();
+            toggleBuildMenu();
+            showNotification(`${type} construido!`);
+        }
+
+        function buyItem(type, price) {
+            if (localPlayer.gold < price) {
+                showNotification('No tienes suficiente oro');
+                return;
+            }
+            
+            localPlayer.gold -= price;
+            
+            const item = localPlayer.inventory.find(i => i.type === type);
+            if (item) {
+                item.count++;
+            } else {
+                localPlayer.inventory.push({ type: type, count: 1 });
+            }
+            
+            updateHUD();
+            setupInventory();
+            showNotification(`${type} comprado!`);
+        }
+
+        // ==================== PERSONALIZACIÓN ====================
+        window.saveCharacter = async function() {
+            localPlayer.customization = {
+                skinColor: document.getElementById('skinColor').value,
+                clothesColor: document.getElementById('clothesColor').value,
+                hairStyle: document.getElementById('hairStyle').value,
+                hairColor: document.getElementById('hairColor').value,
+                magicPower: document.getElementById('magicPower').value
+            };
+            
+            if (currentUser) {
+                await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+                    customization: localPlayer.customization
+                });
+            }
+            
+            showNotification('Personaje guardado!');
+            toggleCharacterMenu();
+        };
+
+        function updateCharacterPreview() {
+            const preview = document.getElementById('charPreview');
+            const pctx = preview.getContext('2d');
+            pctx.imageSmoothingEnabled = false;
+            
+            pctx.clearRect(0, 0, 128, 128);
+            pctx.fillStyle = '#6b8e23';
+            pctx.fillRect(0, 0, 128, 128);
+            
+            pctx.save();
+            pctx.translate(48, 48);
+            pctx.scale(2, 2);
+            
+            const tempCustom = {
+                skinColor: document.getElementById('skinColor').value,
+                clothesColor: document.getElementById('clothesColor').value,
+                hairStyle: document.getElementById('hairStyle').value,
+                hairColor: document.getElementById('hairColor').value,
+                magicPower: document.getElementById('magicPower').value
+            };
+            
+            drawPlayer(pctx, { customization: tempCustom }, 0, 0);
+            pctx.restore();
+        }
+
+        document.getElementById('skinColor')?.addEventListener('change', updateCharacterPreview);
+        document.getElementById('clothesColor')?.addEventListener('change', updateCharacterPreview);
+        document.getElementById('hairStyle')?.addEventListener('change', updateCharacterPreview);
+        document.getElementById('hairColor')?.addEventListener('change', updateCharacterPreview);
+        document.getElementById('magicPower')?.addEventListener('change', updateCharacterPreview);
+
+        // ==================== CHAT ====================
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addChatMessage(currentUsername, message);
+            input.value = '';
+            
+            // Enviar a Firebase si es necesario
+        }
+
+        function addChatMessage(username, message) {
+            const chatBox = document.getElementById('chatBox');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message';
+            msgDiv.innerHTML = `<span class="chat-player">${username}:</span> ${message}`;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // ==================== ALIANZAS ====================
+        window.createAlliance = async function() {
+            const name = prompt('Nombre de la alianza:');
+            if (!name) return;
+            
+            const allianceId = doc(collection(db, "pixelworld_alliances")).id;
+            
+            await setDoc(doc(db, "pixelworld_alliances", allianceId), {
+                name: name,
+                leader: currentUser.uid,
+                members: [currentUser.uid],
+                requests: [],
+                createdAt: Date.now()
+            });
+            
+            localPlayer.alliance = {
+                id: allianceId,
+                name: name
+            };
+            
+            await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+                alliance: localPlayer.alliance
+            });
+            
+            showNotification(`Alianza "${name}" creada!`);
+            updateAllianceInfo();
+        };
+
+        function updateAllianceInfo() {
+            const info = document.getElementById('allianceInfo');
+            const members = document.getElementById('allianceMembers');
+            
+            if (localPlayer.alliance) {
+                info.innerHTML = `
+                    <strong>Alianza: ${localPlayer.alliance.name}</strong><br>
+                    Líder: ${localPlayer.alliance.leader === currentUser.uid ? 'Tú' : 'Otro'}<br>
+                    Miembros: ${localPlayer.alliance.members.length}
+                `;
+                
+                members.innerHTML = '<h3>Miembros:</h3>';
+                localPlayer.alliance.members.forEach(memberId => {
+                    const div = document.createElement('div');
+                    div.className = 'member-item';
+                    div.textContent = memberId === currentUser.uid ? currentUsername + ' (Tú)' : 'Miembro';
+                    members.appendChild(div);
+                });
+            } else {
+                info.textContent = 'No tienes alianza';
+                members.innerHTML = '';
+            }
+        }
+
+        async function sendAllianceRequest(allianceId) {
+            await updateDoc(doc(db, "pixelworld_alliances", allianceId), {
+                requests: arrayUnion(currentUser.uid)
+            });
+            showNotification('Solicitud enviada');
+        }
+
+        async function acceptAllianceRequest(allianceId, userId) {
+            await updateDoc(doc(db, "pixelworld_alliances", allianceId), {
+                members: arrayUnion(userId),
+                requests: arrayRemove(userId)
+            });
+            showNotification('Solicitud aceptada');
+        }
+
+        async function inviteToAlliance(userId) {
+            // Enviar invitación (similar a request pero inverso)
+        }
+
+        function showPlayerInfo(player, id) {
+            showNotification(`${player.username} - Nivel: 1`);
+            if (!localPlayer.alliance) return;
+            // Opción para invitar
+            if (confirm(`Invitar a ${player.username} a tu alianza?`)) {
+                inviteToAlliance(id);
+            }
+        }
+
+        // ==================== NOTIFICACIONES ====================
+        function showNotification(message) {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // ==================== CAMBIOS ADICIONALES ====================
+        window.toggleTextures = function() {
+            textureMode = textureMode === 'realistic' ? 'minimalist' : 'realistic';
+            showNotification(`Texturas cambiadas a ${textureMode}`);
+        };
+
+        window.zoomCamera = function(factor) {
+            camera.zoom *= factor;
+            camera.zoom = Math.max(0.5, Math.min(camera.zoom, 2));
+            resizeCanvas();
+        };
+
+        // ==================== CIERRE ====================
+        window.addEventListener('beforeunload', async () => {
+            if (currentUser) {
+                await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+                    online: false
+                });
+            }
         });
-    }
-    
-    showNotification('Personaje guardado!');
-    toggleCharacterMenu();
-};
 
-function updateCharacterPreview() {
-    const preview = document.getElementById('charPreview');
-    const pctx = preview.getContext('2d');
-    pctx.imageSmoothingEnabled = false;
-    
-    pctx.clearRect(0, 0, 128, 128);
-    pctx.fillStyle = '#6b8e23';
-    pctx.fillRect(0, 0, 128, 128);
-    
-    pctx.save();
-    pctx.translate(48, 48);
-    pctx.scale(2, 2);
-    
-    const tempCustom = {
-        skinColor: document.getElementById('skinColor').value,
-        clothesColor: document.getElementById('clothesColor').value,
-        hairStyle: document.getElementById('hairStyle').value,
-        hairColor: document.getElementById('hairColor').value,
-        magicPower: document.getElementById('magicPower').value
-    };
-    
-    drawPlayer(pctx, { customization: tempCustom }, 0, 0);
-    pctx.restore();
-}
-
-document.getElementById('skinColor')?.addEventListener('change', updateCharacterPreview);
-document.getElementById('clothesColor')?.addEventListener('change', updateCharacterPreview);
-document.getElementById('hairStyle')?.addEventListener('change', updateCharacterPreview);
-document.getElementById('hairColor')?.addEventListener('change', updateCharacterPreview);
-document.getElementById('magicPower')?.addEventListener('change', updateCharacterPreview);
-
-// ==================== CHAT ====================
-function sendChatMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    addChatMessage(currentUsername, message);
-    input.value = '';
-    
-    // Aquí podrías enviar el mensaje a Firebase para sincronización
-}
-
-function addChatMessage(username, message) {
-    const chatBox = document.getElementById('chatBox');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message';
-    msgDiv.innerHTML = `<span class="chat-player">${username}:</span> ${message}`;
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ==================== ALIANZAS ====================
-window.createAlliance = async function() {
-    const name = prompt('Nombre de la alianza:');
-    if (!name) return;
-    
-    localPlayer.alliance = {
-        name: name,
-        leader: currentUser.uid,
-        members: [currentUser.uid],
-        createdAt: Date.now()
-    };
-    
-    if (currentUser) {
-        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
-            alliance: localPlayer.alliance
-        });
-    }
-    
-    showNotification(`Alianza "${name}" creada!`);
-    updateAllianceInfo();
-};
-
-function updateAllianceInfo() {
-    const info = document.getElementById('allianceInfo');
-    const members = document.getElementById('allianceMembers');
-    
-    if (localPlayer.alliance) {
-        info.innerHTML = `
-            <strong>Alianza: ${localPlayer.alliance.name}</strong><br>
-            Líder: ${localPlayer.alliance.leader === currentUser.uid ? 'Tú' : 'Otro'}<br>
-            Miembros: ${localPlayer.alliance.members.length}
-        `;
-        
-        members.innerHTML = '<h3>Miembros:</h3>';
-        localPlayer.alliance.members.forEach(memberId => {
-            const div = document.createElement('div');
-            div.className = 'member-item';
-            div.textContent = memberId === currentUser.uid ? currentUsername + ' (Tú)' : 'Miembro';
-            members.appendChild(div);
-        });
-    } else {
-        info.textContent = 'No tienes alianza';
-        members.innerHTML = '';
-    }
-}
-
-function showPlayerInfo(player) {
-    showNotification(`${player.username} - Nivel: 1`);
-}
-
-// ==================== NOTIFICACIONES ====================
-function showNotification(message) {
-    const container = document.getElementById('notifications');
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    container.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// ==================== CIERRE ====================
-window.addEventListener('beforeunload', async () => {
-    if (currentUser) {
-        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
-            online: false
-        });
-    }
-});
-
-console.log('🌍 Pixel World cargado correctamente!');
+        console.log('🌍 Pixel World cargado correctamente!');
     </script>
 </body>
-</html>
+                    </html>
