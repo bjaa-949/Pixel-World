@@ -28,7 +28,6 @@
             padding: 20px;
         }
 
-        /* Pantalla de login */
         #loginScreen {
             background: white;
             padding: 40px;
@@ -105,7 +104,6 @@
             font-size: 14px;
         }
 
-        /* Menu principal */
         #menuScreen {
             display: none;
         }
@@ -175,7 +173,6 @@
             font-weight: bold;
         }
 
-        /* Pantalla de juego */
         #gameScreen {
             display: none;
         }
@@ -199,6 +196,7 @@
             background: #555;
             display: block;
             margin: 0 auto;
+            cursor: none;
         }
 
         .game-controls {
@@ -209,7 +207,6 @@
             flex-wrap: wrap;
         }
 
-        /* Ranking global */
         #rankingScreen {
             display: none;
         }
@@ -284,7 +281,6 @@
             font-size: 18px;
         }
 
-        /* Character Editor */
         #characterScreen {
             display: none;
         }
@@ -294,16 +290,6 @@
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0,0,0,0.3);
-        }
-
-        .character-preview {
-            width: 200px;
-            height: 300px;
-            margin: 20px auto;
-            background: #f7fafc;
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
         }
 
         .character-options {
@@ -345,7 +331,6 @@
             display: none !important;
         }
 
-        /* Game Over */
         #gameOverScreen {
             display: none;
             background: white;
@@ -382,7 +367,6 @@
 </head>
 <body>
     <div id="container">
-        <!-- Pantalla de Login -->
         <div id="loginScreen">
             <h1>🎮 Minijuegos</h1>
             <p>¡Juega, compite y diviértete!</p>
@@ -400,7 +384,6 @@
             <div id="loginError" class="error-msg"></div>
         </div>
 
-        <!-- Menu Principal -->
         <div id="menuScreen">
             <div class="menu-header">
                 <h1>🎮 Minijuegos</h1>
@@ -439,7 +422,6 @@
             </div>
         </div>
 
-        <!-- Pantalla de Juego -->
         <div id="gameScreen">
             <div class="game-header">
                 <div>👤 <span id="playerName"></span></div>
@@ -454,7 +436,6 @@
             </div>
         </div>
 
-        <!-- Pantalla de Game Over -->
         <div id="gameOverScreen">
             <h2>¡Juego Terminado!</h2>
             <div>Tu puntuación:</div>
@@ -465,7 +446,6 @@
             <button class="btn btn-secondary" onclick="backToMenuFromGameOver()" style="width: 100%;">← Menú Principal</button>
         </div>
 
-        <!-- Pantalla de Rankings -->
         <div id="rankingScreen">
             <div class="ranking-container">
                 <h2 style="color: #667eea; margin-bottom: 20px;">🏆 Rankings Globales</h2>
@@ -482,7 +462,6 @@
             </div>
         </div>
 
-        <!-- Pantalla de Personaje -->
         <div id="characterScreen">
             <div class="character-editor">
                 <h2 style="color: #667eea; margin-bottom: 20px;">👤 Personaliza tu Personaje</h2>
@@ -550,7 +529,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Variables globales
         let currentUser = null;
         let currentUsername = null;
         let currentGame = null;
@@ -570,7 +548,37 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // ========== AUTENTICACIÓN ==========
+        function createEmojiImage(emoji, size = 64) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.font = `${size}px Arial`;
+            tempCtx.textAlign = 'center';
+            tempCtx.textBaseline = 'middle';
+            tempCtx.fillText(emoji, size / 2, size / 2);
+            return tempCanvas;
+        }
+
+        const carImage = createEmojiImage('🚗', 80);
+        const policeCarImage = createEmojiImage('🚓', 80);
+        const taxiImage = createEmojiImage('🚕', 80);
+        const truckImage = createEmojiImage('🚚', 80);
+        const alienImage = createEmojiImage('👽', 60);
+        const ufoImage = createEmojiImage('🛸', 80);
+        const hammerImage = createEmojiImage('🔨', 50);
+        const explosionImage = createEmojiImage('💥', 60);
+        const coinImage = createEmojiImage('🪙', 40);
+        const obstacleImage = createEmojiImage('🚧', 40);
+        const treeImage = createEmojiImage('🌳', 60);
+        const cloudImage = createEmojiImage('☁️', 80);
+        const sunImage = createEmojiImage('☀️', 60);
+        const grassImage = createEmojiImage('🌱', 30);
+
+        let explosions = [];
+        let coins = [];
+        let decorations = { clouds: [], trees: [] };
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -677,7 +685,6 @@
             stopGame();
         };
 
-        // ========== PANTALLAS ==========
         function showLoginScreen() {
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('menuScreen').style.display = 'none';
@@ -696,7 +703,6 @@
             document.getElementById('characterScreen').style.display = 'none';
             document.getElementById('menuUsername').textContent = currentUsername;
             
-            // Actualizar highscores en las tarjetas
             document.getElementById('racing-highscore').textContent = `Mejor: ${userHighScores.racing} pts`;
             document.getElementById('aliens-highscore').textContent = `Mejor: ${userHighScores.aliens} pts`;
             document.getElementById('platformer-highscore').textContent = `Mejor: ${userHighScores.platformer} pts`;
@@ -732,7 +738,6 @@
             showMenuScreen();
         };
 
-        // ========== SELECCIÓN DE JUEGO ==========
         window.selectGame = function(game) {
             currentGame = game;
             showGameScreen();
@@ -763,7 +768,6 @@
             ctx.fillText('Presiona "Iniciar Juego"', canvas.width/2, canvas.height/2);
         }
 
-        // ========== JUEGO: CARRERA LOCA ==========
         let racingPlayer = { x: 175, y: 520, width: 50, height: 80, speed: 7 };
         let cars = [];
         let roadLines = [];
@@ -774,574 +778,19 @@
             cars = [];
             roadLines = [];
             keysPressed = {};
+            explosions = [];
+            decorations.clouds = [
+                { x: 50, y: 50, speed: 0.3 },
+                { x: 200, y: 80, speed: 0.5 },
+                { x: 350, y: 40, speed: 0.4 }
+            ];
             for (let i = 0; i < 6; i++) {
                 roadLines.push({ y: i * 120 });
             }
         }
 
         function updateRacingGame() {
-            // Mover con teclas mantenidas
             if (keysPressed['ArrowLeft'] && racingPlayer.x > 60) {
                 racingPlayer.x -= racingPlayer.speed;
             }
-            if (keysPressed['ArrowRight'] && racingPlayer.x < 290) {
-                racingPlayer.x += racingPlayer.speed;
-            }
-
-            roadLines.forEach(line => {
-                line.y += 4;
-                if (line.y > canvas.height) line.y = -20;
-            });
-
-            if (Math.random() < 0.02) {
-                const lanes = [75, 175, 275];
-                const lane = lanes[Math.floor(Math.random() * lanes.length)];
-                cars.push({
-                    x: lane,
-                    y: -100,
-                    width: 50,
-                    height: 80,
-                    color: ['#e74c3c', '#2ecc71', '#f39c12', '#9b59b6'][Math.floor(Math.random() * 4)]
-                });
-            }
-
-            cars = cars.filter(car => {
-                car.y += 4;
-                
-                if (car.y > canvas.height) {
-                    score += 10;
-                    document.getElementById('score').textContent = score;
-                    return false;
-                }
-
-                if (checkCollision(racingPlayer, car)) {
-                    endGame();
-                    return false;
-                }
-                return true;
-            });
-
-            drawRacingGame();
-        }
-
-        function drawRacingGame() {
-            ctx.fillStyle = '#555';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(50, 0, 5, canvas.height);
-            ctx.fillRect(345, 0, 5, canvas.height);
-
-            roadLines.forEach(line => {
-                ctx.fillRect(150, line.y, 4, 80);
-                ctx.fillRect(250, line.y, 4, 80);
-            });
-
-            cars.forEach(car => drawCar(car.x, car.y, car.width, car.height, car.color));
-            drawCar(racingPlayer.x, racingPlayer.y, racingPlayer.width, racingPlayer.height, '#3498db');
-        }
-
-        function drawCar(x, y, width, height, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y + 10, width, height - 20);
-            ctx.fillRect(x + 5, y + 20, width - 10, height - 50);
-            ctx.fillStyle = '#333';
-            ctx.fillRect(x + 8, y + 25, width - 16, 15);
-            ctx.fillStyle = '#000';
-            ctx.fillRect(x - 3, y + 15, 8, 12);
-            ctx.fillRect(x + width - 5, y + 15, 8, 12);
-            ctx.fillRect(x - 3, y + height - 27, 8, 12);
-            ctx.fillRect(x + width - 5, y + height - 27, 8, 12);
-        }
-
-        // ========== JUEGO: GOLPEA ALIENS ==========
-        let aliens = [];
-        let timeLeft = 60;
-        let alienTimer;
-
-        function initAliensGame() {
-            aliens = [];
-            timeLeft = 60;
-            document.getElementById('timer').textContent = timeLeft;
-            
-            alienTimer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        function updateAliensGame() {
-            if (Math.random() < 0.05) {
-                const holes = [
-                    {x: 60, y: 150}, {x: 200, y: 150}, {x: 340, y: 150},
-                    {x: 60, y: 300}, {x: 200, y: 300}, {x: 340, y: 300},
-                    {x: 60, y: 450}, {x: 200, y: 450}, {x: 340, y: 450}
-                ];
-                
-                const availableHoles = holes.filter(hole => 
-                    !aliens.some(a => a.x === hole.x && a.y === hole.y)
-                );
-                
-                if (availableHoles.length > 0 && aliens.length < 5) {
-                    const hole = availableHoles[Math.floor(Math.random() * availableHoles.length)];
-                    aliens.push({
-                        x: hole.x,
-                        y: hole.y,
-                        visible: true,
-                        timer: Math.random() * 60 + 60
-                    });
-                }
-            }
-
-            // UFO decorativo
-            if (Math.random() < 0.003) {
-                aliens.push({
-                    x: -50,
-                    y: 50,
-                    isUFO: true,
-                    speed: 3
-                });
-            }
-
-            aliens = aliens.filter(alien => {
-                if (alien.isUFO) {
-                    alien.x += alien.speed;
-                    return alien.x < canvas.width + 50;
-                }
-                
-                alien.timer--;
-                if (alien.timer <= 0) {
-                    return false;
-                }
-                return true;
-            });
-
-            drawAliensGame();
-        }
-
-        function drawAliensGame() {
-            ctx.fillStyle = '#cd853f';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Dibujar hoyos
-            const holes = [
-                {x: 60, y: 150}, {x: 200, y: 150}, {x: 340, y: 150},
-                {x: 60, y: 300}, {x: 200, y: 300}, {x: 340, y: 300},
-                {x: 60, y: 450}, {x: 200, y: 450}, {x: 340, y: 450}
-            ];
-            
-            holes.forEach(hole => {
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(hole.x, hole.y, 30, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            aliens.forEach(alien => {
-                if (alien.isUFO) {
-                    // Dibujar OVNI
-                    ctx.fillStyle = '#c0c0c0';
-                    ctx.beginPath();
-                    ctx.ellipse(alien.x, alien.y, 40, 15, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#87ceeb';
-                    ctx.beginPath();
-                    ctx.arc(alien.x, alien.y - 10, 20, 0, Math.PI, true);
-                    ctx.fill();
-                } else {
-                    // Dibujar alien
-                    ctx.fillStyle = '#00ff00';
-                    ctx.beginPath();
-                    ctx.arc(alien.x, alien.y - 20, 25, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(alien.x - 10, alien.y - 25, 5, 0, Math.PI * 2);
-                    ctx.arc(alien.x + 10, alien.y - 25, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = '#00ff00';
-                    ctx.fillRect(alien.x - 8, alien.y - 5, 5, 8);
-                    ctx.fillRect(alien.x + 3, alien.y - 5, 5, 8);
-                }
-            });
-        }
-
-        canvas.addEventListener('click', (e) => {
-            if (currentGame !== 'aliens' || !gameRunning) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
-            
-            aliens = aliens.filter(alien => {
-                if (alien.isUFO) return true;
-                
-                const dist = Math.sqrt((clickX - alien.x) ** 2 + (clickY - alien.y) ** 2);
-                if (dist < 30) {
-                    score += 10;
-                    document.getElementById('score').textContent = score;
-                    return false;
-                }
-                return true;
-            });
-        });
-
-        // ========== JUEGO: PLATAFORMAS ==========
-        let platformPlayer = {
-            x: 50,
-            y: 500,
-            width: 40,
-            height: 60,
-            velocityY: 0,
-            jumping: false,
-            gravity: 0.5,
-            jumpForce: -12
-        };
-        let platforms = [];
-        let obstacles = [];
-        let cameraX = 0;
-
-        function initPlatformerGame() {
-            platformPlayer = {
-                x: 50,
-                y: 500,
-                width: 40,
-                height: 60,
-                velocityY: 0,
-                jumping: false,
-                gravity: 0.5,
-                jumpForce: -12
-            };
-            platforms = [
-                {x: 0, y: 570, width: 200, height: 30},
-                {x: 250, y: 520, width: 150, height: 30},
-                {x: 450, y: 470, width: 150, height: 30},
-                {x: 650, y: 420, width: 150, height: 30},
-                {x: 850, y: 370, width: 150, height: 30}
-            ];
-            obstacles = [];
-            cameraX = 0;
-            
-            for (let i = 1000; i < 5000; i += 200) {
-                platforms.push({
-                    x: i,
-                    y: Math.random() * 200 + 350,
-                    width: 150,
-                    height: 30
-                });
-                
-                if (Math.random() > 0.7) {
-                    obstacles.push({
-                        x: i + 75,
-                        y: Math.random() * 200 + 300,
-                        width: 30,
-                        height: 30
-                    });
-                }
-            }
-        }
-
-        function updatePlatformerGame() {
-            if (keysPressed['ArrowRight']) {
-                platformPlayer.x += 5;
-                cameraX += 2;
-                score += 1;
-                document.getElementById('score').textContent = Math.floor(score);
-            }
-            if (keysPressed['ArrowLeft'] && platformPlayer.x > 30) {
-                platformPlayer.x -= 3;
-            }
-            if ((keysPressed['ArrowUp'] || keysPressed[' ']) && !platformPlayer.jumping) {
-                platformPlayer.velocityY = platformPlayer.jumpForce;
-                platformPlayer.jumping = true;
-            }
-
-            platformPlayer.velocityY += platformPlayer.gravity;
-            platformPlayer.y += platformPlayer.velocityY;
-
-            if (platformPlayer.y > canvas.height) {
-                endGame();
-                return;
-            }
-
-            let onGround = false;
-            platforms.forEach(platform => {
-                if (platformPlayer.velocityY >= 0 &&
-                    platformPlayer.x + platformPlayer.width > platform.x &&
-                    platformPlayer.x < platform.x + platform.width &&
-                    platformPlayer.y + platformPlayer.height >= platform.y &&
-                    platformPlayer.y + platformPlayer.height <= platform.y + 20) {
-                    
-                    platformPlayer.y = platform.y - platformPlayer.height;
-                    platformPlayer.velocityY = 0;
-                    platformPlayer.jumping = false;
-                    onGround = true;
-                }
-            });
-
-            obstacles.forEach(obstacle => {
-                if (platformPlayer.x < obstacle.x + obstacle.width &&
-                    platformPlayer.x + platformPlayer.width > obstacle.x &&
-                    platformPlayer.y < obstacle.y + obstacle.height &&
-                    platformPlayer.y + platformPlayer.height > obstacle.y) {
-                    endGame();
-                }
-            });
-
-            drawPlatformerGame();
-        }
-
-        function drawPlatformerGame() {
-            ctx.fillStyle = '#87ceeb';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.translate(-cameraX, 0);
-
-            ctx.fillStyle = '#8b4513';
-            platforms.forEach(platform => {
-                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-            });
-
-            ctx.fillStyle = '#ff0000';
-            obstacles.forEach(obstacle => {
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            });
-
-            drawCustomCharacter(platformPlayer.x, platformPlayer.y, platformPlayer.width, platformPlayer.height);
-
-            ctx.restore();
-        }
-
-        function drawCustomCharacter(x, y, w, h) {
-            // Zapatos
-            ctx.fillStyle = characterCustomization.shoesColor;
-            ctx.fillRect(x + 5, y + h - 10, 12, 10);
-            ctx.fillRect(x + w - 17, y + h - 10, 12, 10);
-
-            // Pantalón
-            ctx.fillStyle = characterCustomization.pantsColor;
-            ctx.fillRect(x + 5, y + h * 0.5, w - 10, h * 0.5 - 10);
-
-            // Camisa
-            ctx.fillStyle = characterCustomization.shirtColor;
-            ctx.fillRect(x + 5, y + h * 0.25, w - 10, h * 0.35);
-
-            // Cabeza
-            ctx.fillStyle = '#fdbcb4';
-            ctx.beginPath();
-            ctx.arc(x + w/2, y + h * 0.15, w * 0.35, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Gorra
-            if (characterCustomization.hatStyle !== 'none') {
-                ctx.fillStyle = characterCustomization.hatColor;
-                if (characterCustomization.hatStyle === 'cap') {
-                    ctx.fillRect(x + w * 0.2, y, w * 0.6, 8);
-                    ctx.fillRect(x + w * 0.1, y + 8, w * 0.8, 5);
-                } else if (characterCustomization.hatStyle === 'beanie') {
-                    ctx.beginPath();
-                    ctx.arc(x + w/2, y + 5, w * 0.4, Math.PI, 0);
-                    ctx.fill();
-                } else if (characterCustomization.hatStyle === 'cowboy') {
-                    ctx.beginPath();
-                    ctx.ellipse(x + w/2, y + 8, w * 0.5, 5, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillRect(x + w * 0.3, y, w * 0.4, 10);
-                }
-            }
-
-            // Accesorio
-            if (characterCustomization.accessory === 'backpack') {
-                ctx.fillStyle = '#8b4513';
-                ctx.fillRect(x + w - 8, y + h * 0.3, 8, h * 0.3);
-            } else if (characterCustomization.accessory === 'cape') {
-                ctx.fillStyle = '#e74c3c';
-                ctx.beginPath();
-                ctx.moveTo(x + w/2, y + h * 0.25);
-                ctx.lineTo(x + w + 5, y + h * 0.4);
-                ctx.lineTo(x + w + 5, y + h * 0.7);
-                ctx.lineTo(x + w/2, y + h * 0.6);
-                ctx.closePath();
-                ctx.fill();
-            } else if (characterCustomization.accessory === 'wings') {
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.ellipse(x - 5, y + h * 0.4, 8, 15, -0.3, 0, Math.PI * 2);
-                ctx.ellipse(x + w + 5, y + h * 0.4, 8, 15, 0.3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // ========== CONTROLES ==========
-        document.addEventListener('keydown', (e) => {
-            if (!gameRunning) return;
-            keysPressed[e.key] = true;
-        });
-
-        document.addEventListener('keyup', (e) => {
-            keysPressed[e.key] = false;
-        });
-
-        function checkCollision(rect1, rect2) {
-            return rect1.x < rect2.x + rect2.width &&
-                   rect1.x + rect1.width > rect2.x &&
-                   rect1.y < rect2.y + rect2.height &&
-                   rect1.y + rect1.height > rect2.y;
-        }
-
-        // ========== CONTROL DEL JUEGO ==========
-        window.startGame = function() {
-            if (gameRunning) return;
-            
-            gameRunning = true;
-            score = 0;
-            document.getElementById('score').textContent = '0';
-            document.getElementById('startGameBtn').style.display = 'none';
-            
-            if (currentGame === 'racing') {
-                initRacingGame();
-                gameLoop = setInterval(updateRacingGame, 1000 / 60);
-            } else if (currentGame === 'aliens') {
-                initAliensGame();
-                gameLoop = setInterval(updateAliensGame, 1000 / 60);
-            } else if (currentGame === 'platformer') {
-                initPlatformerGame();
-                gameLoop = setInterval(updatePlatformerGame, 1000 / 60);
-            }
-        };
-
-        function stopGame() {
-            gameRunning = false;
-            clearInterval(gameLoop);
-            clearInterval(alienTimer);
-            keysPressed = {};
-            document.getElementById('startGameBtn').style.display = 'inline-block';
-        }
-
-        async function endGame() {
-            stopGame();
-            
-            const isNewHighScore = score > userHighScores[currentGame];
-            
-            if (isNewHighScore) {
-                userHighScores[currentGame] = score;
-                
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    [`highScores.${currentGame}`]: score
-                });
-                
-                document.getElementById('highScoreMessage').textContent = '🎉 ¡Nuevo récord personal!';
-            } else {
-                document.getElementById('highScoreMessage').textContent = '';
-            }
-            
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('gameOverScreen').style.display = 'block';
-        }
-
-        window.playAgain = function() {
-            document.getElementById('gameOverScreen').style.display = 'none';
-            showGameScreen();
-            startGame();
-        };
-
-        // ========== RANKINGS ==========
-        window.switchRanking = async function(game) {
-            document.querySelectorAll('.ranking-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            try {
-                const q = query(collection(db, "users"), orderBy(`highScores.${game}`, "desc"), limit(20));
-                const querySnapshot = await getDocs(q);
-                
-                const rankingList = document.getElementById('rankingList');
-                rankingList.innerHTML = '';
-                
-                let position = 1;
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const gameScore = data.highScores?.[game] || 0;
-                    
-                    if (gameScore > 0) {
-                        const item = document.createElement('div');
-                        item.className = `ranking-item ${position <= 3 ? 'top-' + position : ''}`;
-                        item.innerHTML = `
-                            <span class="rank-pos">${position}°</span>
-                            <span class="rank-name">${data.username}</span>
-                            <span class="rank-score">${gameScore} pts</span>
-                        `;
-                        rankingList.appendChild(item);
-                        position++;
-                    }
-                });
-                
-                if (position === 1) {
-                    rankingList.innerHTML = '<p style="text-align: center; color: #999;">No hay puntuaciones aún</p>';
-                }
-            } catch (error) {
-                console.error("Error cargando ranking:", error);
-            }
-        };
-
-        // ========== PERSONAJE ==========
-        function loadCharacterEditor() {
-            document.getElementById('shirtColor').value = characterCustomization.shirtColor;
-            document.getElementById('pantsColor').value = characterCustomization.pantsColor;
-            document.getElementById('shoesColor').value = characterCustomization.shoesColor;
-            document.getElementById('hatStyle').value = characterCustomization.hatStyle;
-            document.getElementById('hatColor').value = characterCustomization.hatColor;
-            document.getElementById('accessory').value = characterCustomization.accessory;
-            updateCharacter();
-        }
-
-        window.updateCharacter = function() {
-            characterCustomization = {
-                shirtColor: document.getElementById('shirtColor').value,
-                pantsColor: document.getElementById('pantsColor').value,
-                shoesColor: document.getElementById('shoesColor').value,
-                hatStyle: document.getElementById('hatStyle').value,
-                hatColor: document.getElementById('hatColor').value,
-                accessory: document.getElementById('accessory').value
-            };
-            
-            const previewCanvas = document.getElementById('characterPreview');
-            const previewCtx = previewCanvas.getContext('2d');
-            
-            previewCtx.fillStyle = '#f7fafc';
-            previewCtx.fillRect(0, 0, 200, 300);
-            
-            const centerX = 100;
-            const centerY = 150;
-            const scale = 2;
-            
-            previewCtx.save();
-            previewCtx.translate(centerX - 20, centerY - 30);
-            previewCtx.scale(scale, scale);
-            drawCustomCharacter(0, 0, 40, 60);
-            previewCtx.restore();
-        };
-
-        window.saveCharacter = async function() {
-            try {
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    character: characterCustomization
-                });
-                alert('¡Personaje guardado!');
-                backToMenu();
-            } catch (error) {
-                console.error("Error guardando personaje:", error);
-                alert('Error al guardar');
-            }
-        };
-    </script>
-</body>
-</html>
+            if (keysPressed['ArrowRight'] && racingPlayer.x <
