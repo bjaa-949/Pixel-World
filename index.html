@@ -921,7 +921,7 @@
     <script type="module">
         // ==================== IMPORTACIONES FIREBASE ====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ==================== CONFIGURACIÓN FIREBASE ====================
@@ -1043,15 +1043,14 @@ window.register = async function() {
     }
 
     try {
-        const usernameQuery = query(collection(db, "pixelworld_players"), where("username", "==", username));
-        const snapshot = await getDocs(usernameQuery);
+        const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
+        const methods = await fetchSignInMethodsForEmail(auth, email);
         
-        if (!snapshot.empty) {
+        if (methods.length > 0) {
             errorDiv.textContent = 'Usuario ya existe';
             return;
         }
 
-        const email = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@pixelworld.com`;
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
         await setDoc(doc(db, "pixelworld_players", userCredential.user.uid), {
@@ -2128,8 +2127,7 @@ function drawNPC(context, npc, x, y) {
     }
 }
 
-// Continúa en la PARTE 4 (FINAL)...
-        // ==================== DIBUJO DE EDIFICIOS ====================
+// ==================== DIBUJO DE EDIFICIOS ====================
 function drawBuilding(context, type, x, y, size) {
     if (textureMode === 'minimal') {
         // Modo minimalista
@@ -3266,18 +3264,9 @@ function showNotification(message) {
 // ==================== LIMPIEZA Y CIERRE ====================
 window.addEventListener('beforeunload', async () => {
     if (currentUser) {
-        try {
-            await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
-                online: false,
-                x: localPlayer.x,
-                y: localPlayer.y,
-                health: localPlayer.health,
-                gold: localPlayer.gold,
-                inventory: localPlayer.inventory
-            });
-        } catch (error) {
-            console.error("Error al cerrar:", error);
-        }
+        await updateDoc(doc(db, "pixelworld_players", currentUser.uid), {
+            online: false
+        });
     }
 });
 
